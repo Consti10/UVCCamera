@@ -239,57 +239,8 @@ abstract class AbstractUVCCameraHandler extends Handler {
 		sendMessage(obtainMessage(MSG_MEDIA_UPDATE, path));
 	}
 
-	public boolean checkSupportFlag(final long flag) {
-		checkReleased();
-		final CameraThread thread = mWeakThread.get();
-		return thread != null && thread.mUVCCamera != null && thread.mUVCCamera.checkSupportFlag(flag);
-	}
 
-	public int getValue(final int flag) {
-		checkReleased();
-		final CameraThread thread = mWeakThread.get();
-		final UVCCamera camera = thread != null ? thread.mUVCCamera : null;
-		if (camera != null) {
-			if (flag == UVCCamera.PU_BRIGHTNESS) {
-				return camera.getBrightness();
-			} else if (flag == UVCCamera.PU_CONTRAST) {
-				return camera.getContrast();
-			}
-		}
-		throw new IllegalStateException();
-	}
 
-	public int setValue(final int flag, final int value) {
-		checkReleased();
-		final CameraThread thread = mWeakThread.get();
-		final UVCCamera camera = thread != null ? thread.mUVCCamera : null;
-		if (camera != null) {
-			if (flag == UVCCamera.PU_BRIGHTNESS) {
-				camera.setBrightness(value);
-				return camera.getBrightness();
-			} else if (flag == UVCCamera.PU_CONTRAST) {
-				camera.setContrast(value);
-				return camera.getContrast();
-			}
-		}
-		throw new IllegalStateException();
-	}
-
-	public int resetValue(final int flag) {
-		checkReleased();
-		final CameraThread thread = mWeakThread.get();
-		final UVCCamera camera = thread != null ? thread.mUVCCamera : null;
-		if (camera != null) {
-			if (flag == UVCCamera.PU_BRIGHTNESS) {
-				camera.resetBrightness();
-				return camera.getBrightness();
-			} else if (flag == UVCCamera.PU_CONTRAST) {
-				camera.resetContrast();
-				return camera.getContrast();
-			}
-		}
-		throw new IllegalStateException();
-	}
 
 	@Override
 	public void handleMessage(final Message msg) {
@@ -489,7 +440,7 @@ abstract class AbstractUVCCameraHandler extends Handler {
 				mUVCCamera.setPreviewTexture((SurfaceTexture)surface);
 			}
 			mUVCCamera.startPreview();
-			mUVCCamera.updateCameraParams();
+			//mUVCCamera.updateCameraParams();
 			synchronized (mSync) {
 				mIsPreviewing = true;
 			}
