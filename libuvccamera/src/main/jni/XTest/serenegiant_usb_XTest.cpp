@@ -1,10 +1,10 @@
 
-#include <android>
-#include <jni.h>
+//#include <android>
+//#include <jni.h>
 
 
 
-static void nativeHello(JNIEnv *env, jobject thiz,jstring s) {
+//static void nativeHello(JNIEnv *env, jobject thiz,jstring s) {
 
 
-}
+//}
