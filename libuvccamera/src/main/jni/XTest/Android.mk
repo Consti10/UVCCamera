@@ -53,14 +53,7 @@ LOCAL_SHARED_LIBRARIES += usb100 uvc
 LOCAL_ARM_MODE := arm
 
 LOCAL_SRC_FILES := \
-		_onload.cpp \
-		utilbase.cpp \
-		UVCCamera.cpp \
-		UVCPreview.cpp \
-		UVCButtonCallback.cpp \
-		UVCStatusCallback.cpp \
-		Parameters.cpp \
-		serenegiant_usb_UVCCamera.cpp \
+		serenegiant_usb_XTest.cpp \
 
-LOCAL_MODULE    := UVCCamera
+LOCAL_MODULE    := XTest
 include $(BUILD_SHARED_LIBRARY)
