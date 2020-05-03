@@ -72,3 +72,8 @@ libuvccamera/src/main/libs
 .idea/scopes
 .idea/caches
 .idea/codeStyles
+
+# Consti
+.externalNativeBuild/
+/build
+.cxx/
