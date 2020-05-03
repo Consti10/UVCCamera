@@ -7,7 +7,7 @@ import android.os.Bundle;
 import com.serenegiant.usb.XTest;
 
 public class MainActivity extends AppCompatActivity {
-    XTest xTest;
+    //XTest xTest;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {

@@ -2,11 +2,16 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
+      <module fileurl="file://$PROJECT_DIR$/Forks-UVCCamera.iml" filepath="$PROJECT_DIR$/Forks-UVCCamera.iml" group="UVCCamera" />
+      <module fileurl="file://$PROJECT_DIR$/libuvccamera/Forks-UVCCamera-libuvccamera.iml" filepath="$PROJECT_DIR$/libuvccamera/Forks-UVCCamera-libuvccamera.iml" group="UVCCamera/libuvccamera" />
+      <module fileurl="file://$PROJECT_DIR$/usbCameraCommon/Forks-UVCCamera-usbCameraCommon.iml" filepath="$PROJECT_DIR$/usbCameraCommon/Forks-UVCCamera-usbCameraCommon.iml" group="UVCCamera/usbCameraCommon" />
+      <module fileurl="file://$PROJECT_DIR$/usbCameraTest3/Forks-UVCCamera-usbCameraTest3.iml" filepath="$PROJECT_DIR$/usbCameraTest3/Forks-UVCCamera-usbCameraTest3.iml" group="UVCCamera/usbCameraTest3" />
       <module fileurl="file://$PROJECT_DIR$/LaoTie_USBUVCCamera.iml" filepath="$PROJECT_DIR$/LaoTie_USBUVCCamera.iml" />
       <module fileurl="file://$PROJECT_DIR$/UVCCamera.iml" filepath="$PROJECT_DIR$/UVCCamera.iml" group="UVCCamera" />
       <module fileurl="file://$PROJECT_DIR$/libuvccamera/UVCCamera-libuvccamera.iml" filepath="$PROJECT_DIR$/libuvccamera/UVCCamera-libuvccamera.iml" group="UVCCamera/libuvccamera" />
       <module fileurl="file://$PROJECT_DIR$/usbCameraCommon/UVCCamera-usbCameraCommon.iml" filepath="$PROJECT_DIR$/usbCameraCommon/UVCCamera-usbCameraCommon.iml" group="UVCCamera/usbCameraCommon" />
       <module fileurl="file://$PROJECT_DIR$/usbCameraTest3/UVCCamera-usbCameraTest3.iml" filepath="$PROJECT_DIR$/usbCameraTest3/UVCCamera-usbCameraTest3.iml" group="UVCCamera/usbCameraTest3" />
+      <module fileurl="file://$PROJECT_DIR$/usbcameratestx/UVCCamera-usbcameratestx.iml" filepath="$PROJECT_DIR$/usbcameratestx/UVCCamera-usbcameratestx.iml" group="UVCCamera/usbcameratestx" />
       <module fileurl="file://$PROJECT_DIR$/libuvccamera/libuvccamera.iml" filepath="$PROJECT_DIR$/libuvccamera/libuvccamera.iml" />
       <module fileurl="file://$PROJECT_DIR$/usbCameraCommon/usbCameraCommon.iml" filepath="$PROJECT_DIR$/usbCameraCommon/usbCameraCommon.iml" />
       <module fileurl="file://$PROJECT_DIR$/usbCameraTest/usbCameraTest.iml" filepath="$PROJECT_DIR$/usbCameraTest/usbCameraTest.iml" />
