@@ -1,4 +1,4 @@
-package consti10.usbcameratestx;
+package consti10.test;
 
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -11,5 +11,7 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        XTest.nativeHello("BLA");
     }
 }

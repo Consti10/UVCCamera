@@ -53,7 +53,7 @@ LOCAL_SHARED_LIBRARIES += usb1.0 uvc
 LOCAL_ARM_MODE := arm
 
 LOCAL_SRC_FILES := \
-		serenegiant_usb_XTest.cpp \
+		XTest.cpp \
 
 LOCAL_MODULE    := XTest
 include $(BUILD_SHARED_LIBRARY)
