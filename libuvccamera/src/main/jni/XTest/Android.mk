@@ -48,7 +48,7 @@ LOCAL_LDLIBS := -L$(SYSROOT)/usr/lib -ldl
 LOCAL_LDLIBS += -llog
 LOCAL_LDLIBS += -landroid
 
-LOCAL_SHARED_LIBRARIES += usb100 uvc
+LOCAL_SHARED_LIBRARIES += usb1.0 uvc
 
 LOCAL_ARM_MODE := arm
 

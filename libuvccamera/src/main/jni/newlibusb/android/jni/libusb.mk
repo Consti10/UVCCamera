@@ -45,6 +45,7 @@ LOCAL_C_INCLUDES += \
   $(LIBUSB_ROOT_ABS)/libusb/os
 
 LOCAL_EXPORT_C_INCLUDES := \
+  $(LIBUSB_ROOT_ABS)/ \
   $(LIBUSB_ROOT_ABS)/libusb
 
 LOCAL_CFLAGS := -fvisibility=hidden -pthread
