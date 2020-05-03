@@ -13,4 +13,6 @@ public class XTest {
         }
     }
 
+    public static native void nativeHello(String s);
+
 }
