@@ -48,8 +48,9 @@ import android.text.TextUtils;
 import android.util.Log;
 import android.util.SparseArray;
 
-import com.serenegiant.usb.util.BuildCheck;
-import com.serenegiant.usb.util.HandlerThreadHandler;
+import com.serenegiant.utils.BuildCheck;
+import com.serenegiant.utils.HandlerThreadHandler;
+
 
 public final class USBMonitor {
 
@@ -74,12 +75,12 @@ public final class USBMonitor {
 	private List<DeviceFilter> mDeviceFilters = new ArrayList<DeviceFilter>();
 
 	/**
-	 * コールバックをワーカースレッドで呼び出すためのハンドラー
+	 *Handler to call the callback on the worker thread
 	 */
 	private final Handler mAsyncHandler;
 	private volatile boolean destroyed;
 	/**
-	 * USB機器の状態変更時のコールバックリスナー
+	 * Callback listener when the USB device status changes
 	 */
 	public interface OnDeviceConnectListener {
 		/**
@@ -133,7 +134,7 @@ public final class USBMonitor {
 		unregister();
 		if (!destroyed) {
 			destroyed = true;
-			// モニターしているUSB機器を全てcloseする
+			// Close all monitored USB devices
 			final Set<UsbDevice> keys = mCtrlBlocks.keySet();
 			if (keys != null) {
 				UsbControlBlock ctrlBlock;
@@ -219,7 +220,7 @@ public final class USBMonitor {
 	}
 
 	/**
-	 * デバイスフィルターを追加
+	 * Add device filter
 	 * @param filter
 	 * @throws IllegalStateException
 	 */
@@ -229,7 +230,7 @@ public final class USBMonitor {
 	}
 
 	/**
-	 * デバイスフィルターを削除
+	 * Delete device filter
 	 * @param filter
 	 * @throws IllegalStateException
 	 */

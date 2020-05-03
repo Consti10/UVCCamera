@@ -41,10 +41,13 @@
 #include "UVCPreview.h"
 #include "libuvc_internal.h"
 
-#define	LOCAL_DEBUG 0
+#define	LOCAL_DEBUG 1
 #define MAX_FRAME 4    //todo 可以减少预览延迟
 #define PREVIEW_PIXEL_BYTES 4	// RGBA/RGBX
 #define FRAME_POOL_SZ MAX_FRAME + 2
+
+#define TAG_MDEBUG "MDebug"
+#define CLOGD(...) __android_log_print(ANDROID_LOG_DEBUG, TAG_MDEBUG, __VA_ARGS__)
 
 UVCPreview::UVCPreview(uvc_device_handle_t *devh)
 :	mPreviewWindow(NULL),
@@ -199,6 +202,8 @@ int UVCPreview::setPreviewDisplay(ANativeWindow *preview_window) {
 			if (LIKELY(mPreviewWindow)) {
 				ANativeWindow_setBuffersGeometry(mPreviewWindow,
 					frameWidth, frameHeight, previewFormat);
+				// Consti
+				CLOGD("ANativeWindow_setBuffersGeometry %d",previewFormat);
 			}
 		}
 	}
@@ -637,6 +642,7 @@ int copyToSurface(uvc_frame_t *frame, ANativeWindow **window) {
 	int result = 0;
 	if (LIKELY(*window)) {
 		ANativeWindow_Buffer buffer;
+		//CLOGD("copyToSurface %d %d",frame->width,frame->height);
 		if (LIKELY(ANativeWindow_lock(*window, &buffer, NULL) == 0)) {
 			// source = frame data
 			const uint8_t *src = (uint8_t *)frame->data;

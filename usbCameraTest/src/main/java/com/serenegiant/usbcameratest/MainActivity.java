@@ -188,9 +188,9 @@ public final class MainActivity extends BaseActivity implements CameraDialog.Cam
 						mPreviewSurface.release();
 						mPreviewSurface = null;
 					}
-					try {
-						camera.setPreviewSize(UVCCamera.DEFAULT_PREVIEW_WIDTH, UVCCamera.DEFAULT_PREVIEW_HEIGHT, UVCCamera.FRAME_FORMAT_MJPEG);
-					} catch (final IllegalArgumentException e) {
+					//try {
+					//	camera.setPreviewSize(UVCCamera.DEFAULT_PREVIEW_WIDTH, UVCCamera.DEFAULT_PREVIEW_HEIGHT, UVCCamera.FRAME_FORMAT_MJPEG);
+					//} catch (final IllegalArgumentException e) {
 						// fallback to YUV mode
 						try {
 							camera.setPreviewSize(UVCCamera.DEFAULT_PREVIEW_WIDTH, UVCCamera.DEFAULT_PREVIEW_HEIGHT, UVCCamera.DEFAULT_PREVIEW_MODE);
@@ -198,7 +198,7 @@ public final class MainActivity extends BaseActivity implements CameraDialog.Cam
 							camera.destroy();
 							return;
 						}
-					}
+					//}
 					final SurfaceTexture st = mUVCCameraView.getSurfaceTexture();
 					if (st != null) {
 						mPreviewSurface = new Surface(st);

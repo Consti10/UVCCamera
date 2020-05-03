@@ -565,7 +565,7 @@ abstract class AbstractUVCCameraHandler extends Handler {
 				muxer.prepare();
 				muxer.startRecording();
 				if (videoEncoder != null) {
-					mUVCCamera.setFrameCallback(mIFrameCallback, UVCCamera.PIXEL_FORMAT_NV21);
+					mUVCCamera.setFrameCallback(mIFrameCallback, UVCCamera.PIXEL_FORMAT_NV21,true);
 				}
 				synchronized (mSync) {
 					mMuxer = muxer;
@@ -596,7 +596,7 @@ abstract class AbstractUVCCameraHandler extends Handler {
 			}
 			if (muxer != null) {
 				muxer.stopRecording();
-				mUVCCamera.setFrameCallback(null, 0);
+				mUVCCamera.setFrameCallback(null, 0,true);
 				// you should not wait here
 				callOnStopRecording();
 			}
@@ -604,7 +604,7 @@ abstract class AbstractUVCCameraHandler extends Handler {
 
 		private final IFrameCallback mIFrameCallback = new IFrameCallback() {
 			@Override
-			public void onFrame(final ByteBuffer frame) {
+			public void onVerifyFrame(ByteBuffer frame, ByteBuffer verifyResult) {
 				final MediaVideoBufferEncoder videoEncoder;
 				synchronized (mSync) {
 					videoEncoder = mVideoEncoder;
@@ -614,6 +614,18 @@ abstract class AbstractUVCCameraHandler extends Handler {
 					videoEncoder.encode(frame);
 				}
 			}
+
+			/*@Override
+			public void onFrame(final ByteBuffer frame) {
+				final MediaVideoBufferEncoder videoEncoder;
+				synchronized (mSync) {
+					videoEncoder = mVideoEncoder;
+				}
+				if (videoEncoder != null) {
+					videoEncoder.frameAvailableSoon();
+					videoEncoder.encode(frame);
+				}
+			}*/
 		};
 
 		public void handleUpdateMedia(final String path) {

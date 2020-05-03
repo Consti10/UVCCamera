@@ -9,9 +9,10 @@ NDK_DEBUG=1
 APP_PLATFORM=android-16
 NDK_OUT=C:/Users/geier/Desktop/UVC/Forks/UVCCamera/libuvccamera/build/intermediates/ndkBuild/debug/obj
 NDK_LIBS_OUT=C:\Users\geier\Desktop\UVC\Forks\UVCCamera\libuvccamera\build\intermediates\ndkBuild\debug\lib
-UVCCamera
-jpeg-turbo1500
-usb100
-uvc
+APP_SHORT_COMMANDS=false
+LOCAL_SHORT_COMMANDS=false
+-B
+-n
 jvmArgs : 
 
+Build command args:
