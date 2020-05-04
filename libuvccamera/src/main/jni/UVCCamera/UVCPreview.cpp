@@ -46,8 +46,8 @@
 #define PREVIEW_PIXEL_BYTES 4	// RGBA/RGBX
 #define FRAME_POOL_SZ MAX_FRAME + 2
 
-#define TAG_MDEBUG "MDebug"
-#define CLOGD(...) __android_log_print(ANDROID_LOG_DEBUG, TAG_MDEBUG, __VA_ARGS__)
+#include "../NDKHelper/MDebug.hpp"
+#include <chrono>
 
 UVCPreview::UVCPreview(uvc_device_handle_t *devh)
 :	mPreviewWindow(NULL),
@@ -434,6 +434,7 @@ void UVCPreview::uvc_preview_frame_callback(uvc_frame_t *frame, void *vptr_args)
 
 void UVCPreview::addPreviewFrame(uvc_frame_t *frame) {
 
+	CLOGD("addPreviewFrame %d",frame->frame_format);
 	pthread_mutex_lock(&preview_mutex);
 	if (isRunning() && (previewFrames.size() < MAX_FRAME)) {
 		previewFrames.put(frame);
@@ -524,6 +525,20 @@ int UVCPreview::prepare_preview(uvc_stream_ctrl_t *ctrl) {
 	RETURN(result, int);
 }
 
+static uint64_t GetTicksNanos()
+{
+	// Choreographer vsync timestamp is based on.
+	struct timespec tp;
+	const int       status = clock_gettime(CLOCK_MONOTONIC, &tp);
+
+	if (status != 0)
+	{
+		CLOGD("clock_gettime status=%d", status );
+	}
+	const uint64_t result = (uint64_t)tp.tv_sec * (uint64_t)(1000 * 1000 * 1000) + uint64_t (tp.tv_nsec);
+	return result;
+}
+
 void UVCPreview::do_preview(uvc_stream_ctrl_t *ctrl) {
 	ENTER();
 
@@ -550,19 +565,28 @@ void UVCPreview::do_preview(uvc_stream_ctrl_t *ctrl) {
 				frame_mjpeg = waitPreviewFrame();
 				if (LIKELY(frame_mjpeg)) {
 					frame = get_frame(frame_mjpeg->width * frame_mjpeg->height * 2);
-
+					CLOGD("MJPEG mode");
 					//TODO liuyi
 //                    int tempW = frame_mjpeg->width;
 //                    frame_mjpeg->width = frame_mjpeg->height;
 //                    frame_mjpeg->height = tempW;
 //					LOGE("the frame_mjpeg: %x,the frame: %x",frame_mjpeg,frame);
+
+                    const auto before=GetTicksNanos();
 					result = uvc_mjpeg2yuyv(frame_mjpeg, frame);   // MJPEG => yuyv  keeper avg: 52ms
+					const auto after1=GetTicksNanos();
+					const auto deltaUS1=after1-before;
+					CLOGD("Time1 ms %d",(int)((deltaUS1 / 1000) / 1000));
 //					result = uvc_mjpeg2rgbx(frame_mjpeg,frame);
 					recycle_frame(frame_mjpeg);
 //					LOGE("the mjpeg2yuyv result: %d",result);
 					if (LIKELY(!result)) {
 						frame = draw_preview_one(frame, &mPreviewWindow, uvc_any2rgbx, 4); //keeper uvc_any2rgbx(YUYV to RGB) avg: 52ms
 						addCaptureFrame(frame);
+
+						const auto after2=GetTicksNanos();
+						const auto deltaUS2=after2-before;
+						CLOGD("Time2 ms %d",(int)((deltaUS2 / 1000) / 1000));
 					} else {
 						recycle_frame(frame);
 						LOGE("uvc_mjpeg2yuyv error,ret = %d",result);
@@ -577,6 +601,7 @@ void UVCPreview::do_preview(uvc_stream_ctrl_t *ctrl) {
 			// yuvyv mode
 			for ( ; LIKELY(isRunning()) ; ) {
 				frame = waitPreviewFrame();
+				CLOGD("YUV mode");
 				if (LIKELY(frame)) {
 					frame = draw_preview_one(frame, &mPreviewWindow, uvc_any2rgbx, 4);
 					addCaptureFrame(frame);

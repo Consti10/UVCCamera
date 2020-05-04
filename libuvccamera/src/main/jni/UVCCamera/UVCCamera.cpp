@@ -48,6 +48,8 @@
 
 #define	LOCAL_DEBUG 0
 
+#include "../NDKHelper/MDebug.hpp"
+
 //**********************************************************************
 //
 //**********************************************************************
@@ -136,6 +138,9 @@ void UVCCamera::clearCameraParams() {
  */
 int UVCCamera::connect(int vid, int pid, int fd, int busnum, int devaddr, const char *usbfs) {
 	ENTER();
+
+	CLOGD("USB FS %s",usbfs);
+
 	uvc_error_t result = UVC_ERROR_BUSY;
 	if (!mDeviceHandle && fd) {
 		if (mUsbFs)
