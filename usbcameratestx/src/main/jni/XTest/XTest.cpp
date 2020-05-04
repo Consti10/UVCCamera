@@ -57,7 +57,9 @@ void cb(uvc_frame_t *frame, void *ptr) {
      */
     uvc_free_frame(bgr);
 }
-static int example() {
+static int example(jint vid, jint pid, jint fd,
+                   jstring usbfs_str) {
+
     uvc_context_t *ctx;
     uvc_device_t *dev;
     uvc_device_handle_t *devh;
@@ -67,16 +69,17 @@ static int example() {
      * context. Replace NULL with a libusb_context pointer to run libuvc
      * from an existing libusb context. */
     const char* usbfs="/dev/bus/usb";
-    res = uvc_init2(&ctx,NULL,NULL);
+    res = uvc_init2(&ctx,NULL,usbfs);
     if (res < 0) {
-        LOGD("Error uvc_init");
+        CLOGD("Error uvc_init %d",res);
         return res;
     }
-    LOGD("UVC initialized");
+    CLOGD("UVC initialized");
     /* Locates the first attached UVC device, stores in dev */
-    res = uvc_find_device(
-            ctx, &dev,
-            0, 0, NULL); /* filter devices: vendor_id, product_id, "serial_num" */
+    //res = uvc_find_device(
+    //        ctx, &dev,
+    //        0, 0, NULL); /* filter devices: vendor_id, product_id, "serial_num" */
+    res = uvc_get_device_with_fd(ctx, &dev, pid, vid, NULL, fd, NULL, NULL);
     if (res < 0) {
         uvc_perror(res, "uvc_find_device"); /* no devices found */
     } else {
@@ -136,8 +139,11 @@ static int example() {
 extern "C" {
 
 JNI_METHOD(void, nativeHello)
-(JNIEnv *env, jclass jclass1, jstring s) {
-    example();
+(JNIEnv *env, jclass jclass1,
+ jint vid, jint pid, jint fd,
+ jstring usbfs_str
+        ) {
+    example(vid,pid,fd,usbfs_str);
 }
 
 }

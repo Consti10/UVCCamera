@@ -10,7 +10,7 @@
 
 // C-Style definition
 #define TAG_MDEBUG "MDebug"
-#define LOGD(...) __android_log_print(ANDROID_LOG_DEBUG, TAG_MDEBUG, __VA_ARGS__)
+#define CLOGD(...) __android_log_print(ANDROID_LOG_DEBUG, TAG_MDEBUG, __VA_ARGS__)
 
 /*class MDebug{
 public:
