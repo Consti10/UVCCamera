@@ -69,23 +69,22 @@ void cb(uvc_frame_t *frame_mjpeg, void *ptr) {
         ANativeWindow_Buffer buffer;
         if(ANativeWindow_lock(handle->aNativeWindow, &buffer, NULL)==0){
             CLOGD("W H Stride %d %d %d",buffer.width,buffer.height,buffer.stride);
-            //memcpy(buffer.bits,rgba->data,rgba->data_bytes);
+            memcpy(buffer.bits,rgba->data,rgba->data_bytes);
 
-            const int PREVIEW_PIXEL_BYTES=4; //RGBA
-
+            /*const int PREVIEW_PIXEL_BYTES=4; //RGBA
             const uint8_t *src = (uint8_t *)rgba->data;
             const int src_w = rgba->width * PREVIEW_PIXEL_BYTES;
-            const int src_step = rgba->width * PREVIEW_PIXEL_BYTES;
+            const int stride_src = rgba->width * PREVIEW_PIXEL_BYTES;
             // destination = Surface(ANativeWindow)
             uint8_t *dest = (uint8_t *)buffer.bits;
             const int dest_w = buffer.width * PREVIEW_PIXEL_BYTES;
-            const int dest_step = buffer.stride * PREVIEW_PIXEL_BYTES;
+            const int stride_dest = buffer.stride * PREVIEW_PIXEL_BYTES;
             // use lower transfer bytes
             const int w = src_w < dest_w ? src_w : dest_w;
             // use lower height
             const int h = rgba->height < buffer.height ? rgba->height : buffer.height;
             // transfer from frame data to the Surface
-            copyFrame(src, dest, w, h, src_step, dest_step);
+            copyFrame(src, dest, w, h, stride_src, stride_dest);*/
 
             ANativeWindow_unlockAndPost(handle->aNativeWindow);
         }else{
