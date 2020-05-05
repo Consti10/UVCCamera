@@ -56,7 +56,7 @@ void cb(uvc_frame_t *frame_mjpeg, void *ptr) {
     CLOGD("Frame here ! %d",frame_mjpeg->sequence);
 
     /* We'll convert the image from YUV/JPEG to BGR, so allocate space */
-    rgba = uvc_allocate_frame(frame_mjpeg->width * frame_mjpeg->height * 3);
+    rgba = uvc_allocate_frame(frame_mjpeg->width * frame_mjpeg->height * 2);
     if (!rgba) {
        CLOGD("unable to allocate rgba frame!");
         return;
@@ -64,7 +64,6 @@ void cb(uvc_frame_t *frame_mjpeg, void *ptr) {
 
     uvc_error_t result = uvc_mjpeg2yuyv(frame_mjpeg, rgba);
     CLOGD("MJPEG conversion %d", result);
-    return;
 
     if(result==UVC_SUCCESS){
         ANativeWindow_Buffer buffer;
