@@ -16,9 +16,8 @@ struct Handle{
     ANativeWindow* aNativeWindow;
 };
 
-// Input: uvc_frame_t of type MJPEG (ONLY)
-// Decodes the mjpeg frame into rgbx colorspace
-// Then copy into the ANativeWindow buffer
+// Input1: uvc_frame_t of type MJPEG (ONLY)
+// Input2: ANativeWindow_Buffer of RGBA / RGBX ONLY !!
 void decode_mjpeg_into_ANativeWindowBuffer(uvc_frame_t* frame_mjpeg,const ANativeWindow_Buffer& buffer){
     CLOGD("ANativeWindow_Buffer: W H Stride Format %d %d %d %d",buffer.width,buffer.height,buffer.stride,buffer.format);
     uvc_frame_t* rgba = uvc_allocate_frame(frame_mjpeg->width * frame_mjpeg->height * 4);
@@ -28,33 +27,41 @@ void decode_mjpeg_into_ANativeWindowBuffer(uvc_frame_t* frame_mjpeg,const ANativ
         uvc_free_frame(rgba);
         return;
     }
+    CLOGD("bytes %d actual bytes %d",(int)rgba->data_bytes,(int)rgba->actual_bytes);
     memcpy(buffer.bits,rgba->data,rgba->data_bytes);
     uvc_free_frame(rgba);
 }
-// skip the one unneccesary memcpy
+
+// skip the one unnecessary memcpy
+// more supported ANativeWindow_Buffer layouts
 // Log error if unsupported ANativeWindow hardware layout
 void decode_mjpeg_into_ANativeWindowBuffer2(uvc_frame_t* frame_mjpeg,const ANativeWindow_Buffer& buffer){
     CLOGD("ANativeWindow_Buffer: W H Stride Format %d %d %d %d",buffer.width,buffer.height,buffer.stride,buffer.format);
+    typedef uvc_error_t (*convFunc_t)(uvc_frame_t *in, uvc_frame_t *out);
+
+    unsigned int BYTES_PER_PIXEL;
+    convFunc_t conversionFunction;
     if(buffer.format==AHARDWAREBUFFER_FORMAT_R8G8B8A8_UNORM || buffer.format==AHARDWAREBUFFER_FORMAT_R8G8B8X8_UNORM){
-        uvc_frame_t rgba;
-        rgba.data=buffer.bits;
-        rgba.data_bytes=frame_mjpeg->width * frame_mjpeg->height*4;
-        uvc_error_t result = uvc_mjpeg2rgbx(frame_mjpeg, &rgba);
-        if(result!=UVC_SUCCESS){
-            CLOGD("Error MJPEG conversion rgba %d", result);
-            return;
-        }
+        BYTES_PER_PIXEL=4;
+        conversionFunction=uvc_mjpeg2rgbx;
     }else if(buffer.format==AHARDWAREBUFFER_FORMAT_R8G8B8_UNORM){
-        uvc_frame_t rgba;
-        rgba.data=buffer.bits;
-        rgba.data_bytes=frame_mjpeg->width * frame_mjpeg->height*3;
-        uvc_error_t result = uvc_mjpeg2rgb(frame_mjpeg, &rgba);
-        if(result!=UVC_SUCCESS){
-            CLOGD("Error MJPEG conversion rgb %d", result);
-            return;
-        }
+        BYTES_PER_PIXEL=3;
+        conversionFunction=uvc_mjpeg2rgb;
+    }else if(buffer.format==AHARDWAREBUFFER_FORMAT_R5G6B5_UNORM){
+        BYTES_PER_PIXEL=2;
+        conversionFunction=uvc_mjpeg2rgb565;
     }else{
-        CLOGD("Unsupported format");
+        CLOGD("Error Unsupported format");
+        return;
+    }
+    uvc_frame_t frame_decoded;
+    frame_decoded.data=buffer.bits;
+    frame_decoded.data_bytes=frame_mjpeg->width * frame_mjpeg->height*BYTES_PER_PIXEL;
+    frame_decoded.step=640*BYTES_PER_PIXEL;
+    uvc_error_t result = conversionFunction(frame_mjpeg, &frame_decoded);
+    if(result!=UVC_SUCCESS){
+        CLOGD("Error MJPEG conversion %d", result);
+        return;
     }
 }
 
@@ -67,7 +74,7 @@ void cb(uvc_frame_t *frame_mjpeg, void *ptr) {
     CLOGD("Got uvc_frame_t %d",frame_mjpeg->sequence);
     ANativeWindow_Buffer buffer;
     if(ANativeWindow_lock(handle->aNativeWindow, &buffer, NULL)==0){
-        decode_mjpeg_into_ANativeWindowBuffer(frame_mjpeg,buffer);
+        decode_mjpeg_into_ANativeWindowBuffer2(frame_mjpeg,buffer);
         ANativeWindow_unlockAndPost(handle->aNativeWindow);
     }else{
         CLOGD("Cannot lock window");
