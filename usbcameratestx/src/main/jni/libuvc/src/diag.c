@@ -286,6 +286,8 @@ static const char *_uvc_name_for_subtype(const uint8_t subtype) {
 	}
 }
 
+#include "../NDKHelper/MDebug.hpp"
+
 /** @brief Print camera capabilities and configuration.
  * @ingroup diag
  *
@@ -294,7 +296,7 @@ static const char *_uvc_name_for_subtype(const uint8_t subtype) {
  */
 void uvc_print_diag(uvc_device_handle_t *devh, FILE *stream) {
 	UVC_ENTER();
-
+	CLOGD("uvc_print_diag");
 	if (stream == NULL)
 		stream = stderr;
 
@@ -305,15 +307,15 @@ void uvc_print_diag(uvc_device_handle_t *devh, FILE *stream) {
 		uvc_device_descriptor_t *desc;
 		uvc_get_device_descriptor(devh->dev, &desc);
 
-		FPRINTF(stream, "DEVICE CONFIGURATION (%04x:%04x/%s) ---\n",
+		CLOGD( "DEVICE CONFIGURATION (%04x:%04x/%s) ---\n",
 				desc->idVendor, desc->idProduct,
 				desc->serialNumber ? desc->serialNumber : "[none]");
 
 		uvc_free_device_descriptor(desc);
 
-		FPRINTF(stream, "Status: %s\n", devh->streams ? "streaming" : "idle");
+		CLOGD(  "Status: %s\n", devh->streams ? "streaming" : "idle");
 
-		FPRINTF(stream, "VideoControl:\n"
+		CLOGD( "VideoControl:\n"
 				"\tbcdUVC: 0x%04x\n", devh->info->ctrl_if.bcdUVC);
 
 		DL_FOREACH(devh->info->stream_ifs, stream_if)
@@ -322,16 +324,16 @@ void uvc_print_diag(uvc_device_handle_t *devh, FILE *stream) {
 
 			++stream_idx;
 
-			FPRINTF(stream,
-				"VideoStreaming(%d):\n"
+			CLOGD(
+			"VideoStreaming(%d):\n"
 				"\tbEndpointAddress: %d\n\tFormats:\n",
 				stream_idx, stream_if->bEndpointAddress);
 			uvc_print_format_desc(stream_if->format_descs, stream);
 		}
 
-		FPRINTF(stream, "END DEVICE CONFIGURATION\n");
+		CLOGD( "END DEVICE CONFIGURATION\n");
 	} else {
-		FPRINTF(stream, "uvc_print_diag: Device not configured!\n");
+		CLOGD(  "uvc_print_diag: Device not configured!\n");
 	}
 	UVC_EXIT_VOID();
 }
@@ -344,11 +346,11 @@ void uvc_print_format_desc_one(uvc_format_desc_t *format_desc, FILE *stream) {
 	switch (format_desc->bDescriptorSubtype) {
 	case UVC_VS_FORMAT_UNCOMPRESSED:
 	case UVC_VS_FORMAT_MJPEG:
-		FPRINTF(stream, "\t\tFormatDescriptor(bFormatIndex=%d)", format_desc->bFormatIndex);
-		FPRINTF(stream, "\t\t  bDescriptorSubtype: %s",
+		CLOGD( "\t\tFormatDescriptor(bFormatIndex=%d)", format_desc->bFormatIndex);
+			CLOGD("\t\t  bDescriptorSubtype: %s",
 			_uvc_name_for_subtype(format_desc->bDescriptorSubtype));
-		FPRINTF(stream, "\t\t  bits per pixel: %d", format_desc->bBitsPerPixel);
-		FPRINTF(stream,
+			CLOGD("\t\t  bits per pixel: %d", format_desc->bBitsPerPixel);
+			CLOGD(
 				"\t\t  GUID:%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x",
 				format_desc->guidFormat[0], format_desc->guidFormat[1],
 				format_desc->guidFormat[2], format_desc->guidFormat[3],
@@ -359,45 +361,45 @@ void uvc_print_format_desc_one(uvc_format_desc_t *format_desc, FILE *stream) {
 				format_desc->guidFormat[12], format_desc->guidFormat[13],
 				format_desc->guidFormat[14], format_desc->guidFormat[15]);
 
-		FPRINTF(stream, "\t\t  bDefaultFrameIndex: %d", format_desc->bDefaultFrameIndex);
-		FPRINTF(stream, "\t\t  bAspectRatio(x,y): %dx%d", format_desc->bAspectRatioX, format_desc->bAspectRatioY);
-		FPRINTF(stream, "\t\t  bmInterlaceFlags: 0x%02x", format_desc->bmInterlaceFlags);
-		FPRINTF(stream, "\t\t  bCopyProtect: 0x%02x", format_desc->bCopyProtect);
+			CLOGD( "\t\t  bDefaultFrameIndex: %d", format_desc->bDefaultFrameIndex);
+			CLOGD("\t\t  bAspectRatio(x,y): %dx%d", format_desc->bAspectRatioX, format_desc->bAspectRatioY);
+			CLOGD( "\t\t  bmInterlaceFlags: 0x%02x", format_desc->bmInterlaceFlags);
+			CLOGD( "\t\t  bCopyProtect: 0x%02x", format_desc->bCopyProtect);
 
 		DL_FOREACH(format_desc->frame_descs, frame_desc)
 		{
 			uint32_t *interval_ptr;
 
-			FPRINTF(stream, "\t\t\tFrameDescriptor(bFrameIndex=%d)", frame_desc->bFrameIndex);
-			FPRINTF(stream, "\t\t\t  bDescriptorSubtype: %s", _uvc_name_for_subtype(frame_desc->bDescriptorSubtype));
-			FPRINTF(stream, "\t\t\t  bmCapabilities: 0x%02x", frame_desc->bmCapabilities);
-			FPRINTF(stream, "\t\t\t  size(w,h):(%d,%d)", frame_desc->wWidth, frame_desc->wHeight);
-			FPRINTF(stream, "\t\t\t  bit rate(min,max): (%d,%d)", frame_desc->dwMinBitRate, frame_desc->dwMaxBitRate);
-			FPRINTF(stream, "\t\t\t  dwMaxVideoFrameBufferSize: %d", frame_desc->dwMaxVideoFrameBufferSize);
-			FPRINTF(stream, "\t\t\t  dwDefaultFrameInterval: 1/%d", 10000000 / frame_desc->dwDefaultFrameInterval);
+			CLOGD( "\t\t\tFrameDescriptor(bFrameIndex=%d)", frame_desc->bFrameIndex);
+			CLOGD( "\t\t\t  bDescriptorSubtype: %s", _uvc_name_for_subtype(frame_desc->bDescriptorSubtype));
+			CLOGD( "\t\t\t  bmCapabilities: 0x%02x", frame_desc->bmCapabilities);
+			CLOGD("\t\t\t  size(w,h):(%d,%d)", frame_desc->wWidth, frame_desc->wHeight);
+			CLOGD( "\t\t\t  bit rate(min,max): (%d,%d)", frame_desc->dwMinBitRate, frame_desc->dwMaxBitRate);
+			CLOGD( "\t\t\t  dwMaxVideoFrameBufferSize: %d", frame_desc->dwMaxVideoFrameBufferSize);
+			CLOGD( "\t\t\t  dwDefaultFrameInterval: 1/%d", 10000000 / frame_desc->dwDefaultFrameInterval);
 			if (frame_desc->intervals) {
 				for (interval_ptr = frame_desc->intervals;
 						*interval_ptr; ++interval_ptr) {
-					FPRINTF(stream, "\t\t\t  interval[%d]: 1/%d",
+					CLOGD( "\t\t\t  interval[%d]: 1/%d",
 							(int ) (interval_ptr - frame_desc->intervals),
 							10000000 / *interval_ptr);
 				}
 			} else {
-				FPRINTF(stream, "\t\t\t  min interval[%d] = 1/%d",
+				CLOGD( "\t\t\t  min interval[%d] = 1/%d",
 					frame_desc->dwMinFrameInterval,
 					10000000 / frame_desc->dwMinFrameInterval);
-				FPRINTF(stream, "\t\t\t  max interval[%d] = 1/%d",
+				CLOGD( "\t\t\t  max interval[%d] = 1/%d",
 					frame_desc->dwMaxFrameInterval,
 					10000000 / frame_desc->dwMaxFrameInterval);
 				if (frame_desc->dwFrameIntervalStep)
-					FPRINTF(stream, "\t\t\t  interval step[%d] = 1/%d",
+					CLOGD( "\t\t\t  interval step[%d] = 1/%d",
 						frame_desc->dwFrameIntervalStep,
 						10000000 / frame_desc->dwFrameIntervalStep);
 			}
 		}
 		break;
 	default:
-		FPRINTF(stream, "\t-UnknownFormat:0x%2d", format_desc->bDescriptorSubtype);
+		CLOGD("\t-UnknownFormat:0x%2d", format_desc->bDescriptorSubtype);
 	}
 }
 

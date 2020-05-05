@@ -161,6 +161,7 @@ int UVCCamera::connect(int vid, int pid, int fd, int busnum, int devaddr, const 
 		//Searches the device with the specified vid and id, returns 0 if found and sets the found device in mDevice (already called uvc_ref_device once)
 //		result = uvc_find_device2(mContext, &mDevice, vid, pid, NULL, fd);
 		result = uvc_get_device_with_fd(mContext, &mDevice, vid, pid, NULL, fd, busnum, devaddr);
+		CLOGD("busnum %d devaddr %d",busnum,devaddr);
 		if (LIKELY(!result)) {
 			// カメラのopen処理
 			result = uvc_open(mDevice, &mDeviceHandle);

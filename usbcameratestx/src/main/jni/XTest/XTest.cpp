@@ -10,22 +10,33 @@
 
 #include "../NDKHelper/MDebug.hpp"
 
+
+static void convert(uvc_frame_t frame){
+
+}
+
 /* This callback function runs once per frame. Use it to perform any
  * quick processing you need, or have it put the frame into your application's
  * input queue. If this function takes too long, you'll start losing frames. */
 void cb(uvc_frame_t *frame, void *ptr) {
     uvc_frame_t *bgr;
     uvc_error_t ret;
+
+    CLOGD("Frame here !");
     /* We'll convert the image from YUV/JPEG to BGR, so allocate space */
     bgr = uvc_allocate_frame(frame->width * frame->height * 3);
     if (!bgr) {
-        printf("unable to allocate bgr frame!");
+       CLOGD("unable to allocate bgr frame!");
         return;
     }
+
+    auto result = uvc_mjpeg2yuyv(frame, bgr);
+
+
     /* Do the BGR conversion */
     ret = uvc_any2bgr(frame, bgr);
     if (ret) {
-        uvc_perror(ret, "uvc_any2bgr");
+        CLOGD( "uvc_any2bgr");
         uvc_free_frame(bgr);
         return;
     }
@@ -58,6 +69,7 @@ void cb(uvc_frame_t *frame, void *ptr) {
     uvc_free_frame(bgr);
 }
 static int example(jint vid, jint pid, jint fd,
+                   jint busnum,jint devAddr,
                    jstring usbfs_str) {
 
     uvc_context_t *ctx;
@@ -79,24 +91,28 @@ static int example(jint vid, jint pid, jint fd,
     //res = uvc_find_device(
     //        ctx, &dev,
     //        0, 0, NULL); /* filter devices: vendor_id, product_id, "serial_num" */
-    res = uvc_get_device_with_fd(ctx, &dev, pid, vid, NULL, fd, NULL, NULL);
+    //res = uvc_get_device_with_fd(ctx, &dev, pid, vid, NULL, fd, NULL, NULL);
+    res = uvc_get_device_with_fd(ctx, &dev, vid, pid, NULL, fd, busnum, devAddr);
     if (res < 0) {
         uvc_perror(res, "uvc_find_device"); /* no devices found */
     } else {
-        puts("Device found");
+        CLOGD("Device found");
         /* Try to open the device: requires exclusive access */
         res = uvc_open(dev, &devh);
         if (res < 0) {
             uvc_perror(res, "uvc_open"); /* unable to open device */
         } else {
-            puts("Device opened");
+            CLOGD("Device opened");
             /* Print out a message containing all the information that libuvc
              * knows about the device */
-            uvc_print_diag(devh, stderr);
-            /* Try to negotiate a 640x480 30 fps YUYV stream profile */
+            const char* mLog;
+            uvc_print_diag(devh,stderr);
+
+
+            //X MJPEG only /* Try to negotiate a 640x480 30 fps YUYV stream profile */
             res = uvc_get_stream_ctrl_format_size(
                     devh, &ctrl, /* result stored in ctrl */
-                    UVC_FRAME_FORMAT_YUYV, /* YUV 422, aka YUV 4:2:2. try _COMPRESSED */
+                    UVC_FRAME_FORMAT_MJPEG, /* YUV 422, aka YUV 4:2:2. try _COMPRESSED */
                     640, 480, 30 /* width, height, fps */
             );
             /* Print out the result */
@@ -113,6 +129,7 @@ static int example(jint vid, jint pid, jint fd,
                 } else {
                     puts("Streaming...");
                     uvc_set_ae_mode(devh, 1); /* e.g., turn on auto exposure */
+                    //TODO start poling new frames ? Maybe ..:
                     sleep(10); /* stream for 10 seconds */
                     /* End the stream. Blocks until last callback is serviced */
                     uvc_stop_streaming(devh);
@@ -141,9 +158,10 @@ extern "C" {
 JNI_METHOD(void, nativeHello)
 (JNIEnv *env, jclass jclass1,
  jint vid, jint pid, jint fd,
+ jint busnum,jint devAddr,
  jstring usbfs_str
         ) {
-    example(vid,pid,fd,usbfs_str);
+    example(vid,pid,fd,busnum,devAddr,usbfs_str);
 }
 
 }

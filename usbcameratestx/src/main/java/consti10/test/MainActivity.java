@@ -11,6 +11,7 @@ import android.hardware.usb.UsbDevice;
 import android.hardware.usb.UsbDeviceConnection;
 import android.hardware.usb.UsbManager;
 import android.os.Bundle;
+import android.text.TextUtils;
 import android.util.Log;
 
 import java.util.HashMap;
@@ -34,7 +35,18 @@ public class MainActivity extends AppCompatActivity {
                             //call method to set up device communication
                             final UsbManager usbManager = (UsbManager) getSystemService(Context.USB_SERVICE);
                             final UsbDeviceConnection connection=usbManager.openDevice(device);
-                            XTest.nativeHello(device.getVendorId(),device.getProductId(),connection.getFileDescriptor(),device.getDeviceName());
+
+                            //
+                            final String name = device.getDeviceName();
+                            final String[] v = !TextUtils.isEmpty(name) ? name.split("/") : null;
+                            int busnum = 0;
+                            int devnum = 0;
+                            if (v != null) {
+                                busnum = Integer.parseInt(v[v.length-2]);
+                                devnum = Integer.parseInt(v[v.length-1]);
+                            }
+                            //
+                            XTest.nativeHello(device.getVendorId(),device.getProductId(),connection.getFileDescriptor(),busnum,devnum,device.getDeviceName());
                         }
                     }
                     else {
