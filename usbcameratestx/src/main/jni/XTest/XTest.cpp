@@ -32,6 +32,7 @@ void decode_mjpeg_into_ANativeWindowBuffer(uvc_frame_t* frame_mjpeg,const ANativ
     uvc_free_frame(rgba);
 }
 // skip the one unneccesary memcpy
+// Log error if unsupported ANativeWindow hardware layout
 void decode_mjpeg_into_ANativeWindowBuffer2(uvc_frame_t* frame_mjpeg,const ANativeWindow_Buffer& buffer){
     CLOGD("ANativeWindow_Buffer: W H Stride Format %d %d %d %d",buffer.width,buffer.height,buffer.stride,buffer.format);
     if(buffer.format==AHARDWAREBUFFER_FORMAT_R8G8B8A8_UNORM || buffer.format==AHARDWAREBUFFER_FORMAT_R8G8B8X8_UNORM){
@@ -52,17 +53,8 @@ void decode_mjpeg_into_ANativeWindowBuffer2(uvc_frame_t* frame_mjpeg,const ANati
             CLOGD("Error MJPEG conversion rgb %d", result);
             return;
         }
-    }else if(buffer.format==AHARDWAREBUFFER_FORMAT_R5G6B5_UNORM){
-        uvc_frame_t rgba;
-        rgba.data=buffer.bits;
-        rgba.data_bytes=frame_mjpeg->width * frame_mjpeg->height*2;
-        uvc_error_t result = uvc_mjpeg2rgb565(frame_mjpeg, &rgba);
-        if(result!=UVC_SUCCESS){
-            CLOGD("Error MJPEG conversion rgb565 %d", result);
-            return;
-        }
     }else{
-
+        CLOGD("Unsupported format");
     }
 }
 
