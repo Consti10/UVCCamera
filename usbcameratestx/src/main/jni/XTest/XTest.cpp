@@ -16,82 +16,70 @@ struct Handle{
     ANativeWindow* aNativeWindow;
 };
 
-// from UVCPreview
-static void copyFrame(const uint8_t *src, uint8_t *dest, const int width, int height, const int stride_src, const int stride_dest) {
-    const int h8 = height % 8;
-    for (int i = 0; i < h8; i++) {
-        memcpy(dest, src, width);
-        dest += stride_dest; src += stride_src;
+// Input: uvc_frame_t of type MJPEG (ONLY)
+// Decodes the mjpeg frame into rgbx colorspace
+// Then copy into the ANativeWindow buffer
+void decode_mjpeg_into_ANativeWindowBuffer(uvc_frame_t* frame_mjpeg,const ANativeWindow_Buffer& buffer){
+    CLOGD("ANativeWindow_Buffer: W H Stride Format %d %d %d %d",buffer.width,buffer.height,buffer.stride,buffer.format);
+    uvc_frame_t* rgba = uvc_allocate_frame(frame_mjpeg->width * frame_mjpeg->height * 4);
+    uvc_error_t result = uvc_mjpeg2rgbx(frame_mjpeg, rgba);
+    if(result!=UVC_SUCCESS){
+        CLOGD("Error MJPEG conversion %d", result);
+        uvc_free_frame(rgba);
+        return;
     }
-    for (int i = 0; i < height; i += 8) {
-        memcpy(dest, src, width);
-        dest += stride_dest; src += stride_src;
-        memcpy(dest, src, width);
-        dest += stride_dest; src += stride_src;
-        memcpy(dest, src, width);
-        dest += stride_dest; src += stride_src;
-        memcpy(dest, src, width);
-        dest += stride_dest; src += stride_src;
-        memcpy(dest, src, width);
-        dest += stride_dest; src += stride_src;
-        memcpy(dest, src, width);
-        dest += stride_dest; src += stride_src;
-        memcpy(dest, src, width);
-        dest += stride_dest; src += stride_src;
-        memcpy(dest, src, width);
-        dest += stride_dest; src += stride_src;
+    memcpy(buffer.bits,rgba->data,rgba->data_bytes);
+    uvc_free_frame(rgba);
+}
+// skip the one unneccesary memcpy
+void decode_mjpeg_into_ANativeWindowBuffer2(uvc_frame_t* frame_mjpeg,const ANativeWindow_Buffer& buffer){
+    CLOGD("ANativeWindow_Buffer: W H Stride Format %d %d %d %d",buffer.width,buffer.height,buffer.stride,buffer.format);
+    if(buffer.format==AHARDWAREBUFFER_FORMAT_R8G8B8A8_UNORM || buffer.format==AHARDWAREBUFFER_FORMAT_R8G8B8X8_UNORM){
+        uvc_frame_t rgba;
+        rgba.data=buffer.bits;
+        rgba.data_bytes=frame_mjpeg->width * frame_mjpeg->height*4;
+        uvc_error_t result = uvc_mjpeg2rgbx(frame_mjpeg, &rgba);
+        if(result!=UVC_SUCCESS){
+            CLOGD("Error MJPEG conversion rgba %d", result);
+            return;
+        }
+    }else if(buffer.format==AHARDWAREBUFFER_FORMAT_R8G8B8_UNORM){
+        uvc_frame_t rgba;
+        rgba.data=buffer.bits;
+        rgba.data_bytes=frame_mjpeg->width * frame_mjpeg->height*3;
+        uvc_error_t result = uvc_mjpeg2rgb(frame_mjpeg, &rgba);
+        if(result!=UVC_SUCCESS){
+            CLOGD("Error MJPEG conversion rgb %d", result);
+            return;
+        }
+    }else if(buffer.format==AHARDWAREBUFFER_FORMAT_R5G6B5_UNORM){
+        uvc_frame_t rgba;
+        rgba.data=buffer.bits;
+        rgba.data_bytes=frame_mjpeg->width * frame_mjpeg->height*2;
+        uvc_error_t result = uvc_mjpeg2rgb565(frame_mjpeg, &rgba);
+        if(result!=UVC_SUCCESS){
+            CLOGD("Error MJPEG conversion rgb565 %d", result);
+            return;
+        }
+    }else{
+
     }
 }
-//uvc_frame_t frame_rgba=
 
 /* This callback function runs once per frame. Use it to perform any
  * quick processing you need, or have it put the frame into your application's
  * input queue. If this function takes too long, you'll start losing frames. */
+// HM: Do we have enough time to decode mjpeg frame without dropping frames ?
 void cb(uvc_frame_t *frame_mjpeg, void *ptr) {
     Handle* handle=(Handle*)ptr;
-
-    uvc_frame_t *rgba;
-    uvc_error_t ret;
-
-    CLOGD("Frame here ! %d",frame_mjpeg->sequence);
-
-    /* We'll convert the image from YUV/JPEG to BGR, so allocate space */
-    rgba = uvc_allocate_frame(frame_mjpeg->width * frame_mjpeg->height * 4);
-    if (!rgba) {
-       CLOGD("unable to allocate rgba frame!");
-        return;
+    CLOGD("Got uvc_frame_t %d",frame_mjpeg->sequence);
+    ANativeWindow_Buffer buffer;
+    if(ANativeWindow_lock(handle->aNativeWindow, &buffer, NULL)==0){
+        decode_mjpeg_into_ANativeWindowBuffer(frame_mjpeg,buffer);
+        ANativeWindow_unlockAndPost(handle->aNativeWindow);
+    }else{
+        CLOGD("Cannot lock window");
     }
-
-    uvc_error_t result = uvc_mjpeg2rgbx(frame_mjpeg, rgba);
-    CLOGD("MJPEG conversion %d", result);
-
-    if(result==UVC_SUCCESS){
-        ANativeWindow_Buffer buffer;
-        if(ANativeWindow_lock(handle->aNativeWindow, &buffer, NULL)==0){
-            CLOGD("W H Stride %d %d %d",buffer.width,buffer.height,buffer.stride);
-            memcpy(buffer.bits,rgba->data,rgba->data_bytes);
-
-            /*const int PREVIEW_PIXEL_BYTES=4; //RGBA
-            const uint8_t *src = (uint8_t *)rgba->data;
-            const int src_w = rgba->width * PREVIEW_PIXEL_BYTES;
-            const int stride_src = rgba->width * PREVIEW_PIXEL_BYTES;
-            // destination = Surface(ANativeWindow)
-            uint8_t *dest = (uint8_t *)buffer.bits;
-            const int dest_w = buffer.width * PREVIEW_PIXEL_BYTES;
-            const int stride_dest = buffer.stride * PREVIEW_PIXEL_BYTES;
-            // use lower transfer bytes
-            const int w = src_w < dest_w ? src_w : dest_w;
-            // use lower height
-            const int h = rgba->height < buffer.height ? rgba->height : buffer.height;
-            // transfer from frame data to the Surface
-            copyFrame(src, dest, w, h, stride_src, stride_dest);*/
-
-            ANativeWindow_unlockAndPost(handle->aNativeWindow);
-        }else{
-            CLOGD("Cannot lock window");
-        }
-    }
-    uvc_free_frame(rgba);
 }
 
 static int example(jint vid, jint pid, jint fd,
@@ -133,7 +121,6 @@ static int example(jint vid, jint pid, jint fd,
              * knows about the device */
             const char* mLog;
             uvc_print_diag(devh,stderr);
-
 
             //X MJPEG only /* Try to negotiate a 640x480 30 fps YUYV stream profile */
             res = uvc_get_stream_ctrl_format_size(
