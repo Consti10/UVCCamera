@@ -7,70 +7,94 @@
 #include <libusb.h>
 #include <libuvc.h>
 #include <stdio.h>
+#include <cstring>
 
 #include "../NDKHelper/MDebug.hpp"
 
 
-static void convert(uvc_frame_t frame){
+struct Handle{
+    ANativeWindow* aNativeWindow;
+};
 
+// from UVCPreview
+static void copyFrame(const uint8_t *src, uint8_t *dest, const int width, int height, const int stride_src, const int stride_dest) {
+    const int h8 = height % 8;
+    for (int i = 0; i < h8; i++) {
+        memcpy(dest, src, width);
+        dest += stride_dest; src += stride_src;
+    }
+    for (int i = 0; i < height; i += 8) {
+        memcpy(dest, src, width);
+        dest += stride_dest; src += stride_src;
+        memcpy(dest, src, width);
+        dest += stride_dest; src += stride_src;
+        memcpy(dest, src, width);
+        dest += stride_dest; src += stride_src;
+        memcpy(dest, src, width);
+        dest += stride_dest; src += stride_src;
+        memcpy(dest, src, width);
+        dest += stride_dest; src += stride_src;
+        memcpy(dest, src, width);
+        dest += stride_dest; src += stride_src;
+        memcpy(dest, src, width);
+        dest += stride_dest; src += stride_src;
+        memcpy(dest, src, width);
+        dest += stride_dest; src += stride_src;
+    }
 }
+//uvc_frame_t frame_rgba=
 
 /* This callback function runs once per frame. Use it to perform any
  * quick processing you need, or have it put the frame into your application's
  * input queue. If this function takes too long, you'll start losing frames. */
-void cb(uvc_frame_t *frame, void *ptr) {
-    uvc_frame_t *bgr;
+void cb(uvc_frame_t *frame_mjpeg, void *ptr) {
+    Handle* handle=(Handle*)ptr;
+
+    uvc_frame_t *rgba;
     uvc_error_t ret;
 
-    CLOGD("Frame here !");
+    CLOGD("Frame here ! %d",frame_mjpeg->sequence);
+
     /* We'll convert the image from YUV/JPEG to BGR, so allocate space */
-    bgr = uvc_allocate_frame(frame->width * frame->height * 3);
-    if (!bgr) {
-       CLOGD("unable to allocate bgr frame!");
+    rgba = uvc_allocate_frame(frame_mjpeg->width * frame_mjpeg->height * 3);
+    if (!rgba) {
+       CLOGD("unable to allocate rgba frame!");
         return;
     }
 
-    auto result = uvc_mjpeg2yuyv(frame, bgr);
+    uvc_error_t result = uvc_mjpeg2yuyv(frame_mjpeg, rgba);
+    CLOGD("MJPEG conversion %d", result);
+    return;
 
+    if(result==UVC_SUCCESS){
+        ANativeWindow_Buffer buffer;
+        if(ANativeWindow_lock(handle->aNativeWindow, &buffer, NULL)==0){
+            const int PREVIEW_PIXEL_BYTES=4; //RGBA
 
-    /* Do the BGR conversion */
-    ret = uvc_any2bgr(frame, bgr);
-    if (ret) {
-        CLOGD( "uvc_any2bgr");
-        uvc_free_frame(bgr);
-        return;
+            const uint8_t *src = (uint8_t *)rgba->data;
+            const int src_w = rgba->width * PREVIEW_PIXEL_BYTES;
+            const int src_step = rgba->width * PREVIEW_PIXEL_BYTES;
+            // destination = Surface(ANativeWindow)
+            uint8_t *dest = (uint8_t *)buffer.bits;
+            const int dest_w = buffer.width * PREVIEW_PIXEL_BYTES;
+            const int dest_step = buffer.stride * PREVIEW_PIXEL_BYTES;
+            // use lower transfer bytes
+            const int w = src_w < dest_w ? src_w : dest_w;
+            // use lower height
+            const int h = rgba->height < buffer.height ? rgba->height : buffer.height;
+            // transfer from frame data to the Surface
+            copyFrame(src, dest, w, h, src_step, dest_step);
+            ANativeWindow_unlockAndPost(handle->aNativeWindow);
+        }else{
+            CLOGD("Cannot lock window");
+        }
     }
-    /* Call a user function:
-     *
-     * my_type *my_obj = (*my_type) ptr;
-     * my_user_function(ptr, bgr);
-     * my_other_function(ptr, bgr->data, bgr->width, bgr->height);
-     */
-    /* Call a C++ method:
-     *
-     * my_type *my_obj = (*my_type) ptr;
-     * my_obj->my_func(bgr);
-     */
-    /* Use opencv.highgui to display the image:
-     *
-     * cvImg = cvCreateImageHeader(
-     *     cvSize(bgr->width, bgr->height),
-     *     IPL_DEPTH_8U,
-     *     3);
-     *
-     * cvSetData(cvImg, bgr->data, bgr->width * 3);
-     *
-     * cvNamedWindow("Test", CV_WINDOW_AUTOSIZE);
-     * cvShowImage("Test", cvImg);
-     * cvWaitKey(10);
-     *
-     * cvReleaseImageHeader(&cvImg);
-     */
-    uvc_free_frame(bgr);
+    uvc_free_frame(rgba);
 }
+
 static int example(jint vid, jint pid, jint fd,
                    jint busnum,jint devAddr,
-                   jstring usbfs_str) {
+                   jstring usbfs_str,ANativeWindow* window) {
 
     uvc_context_t *ctx;
     uvc_device_t *dev;
@@ -123,7 +147,9 @@ static int example(jint vid, jint pid, jint fd,
                 /* Start the video stream. The library will call user function cb:
                  *   cb(frame, (void*) 12345)
                  */
-                res = uvc_start_streaming(devh, &ctrl, cb, nullptr, 0);
+                Handle* handle=new Handle();
+                handle->aNativeWindow=window;
+                res = uvc_start_streaming(devh, &ctrl, cb, handle, 0);
                 if (res < 0) {
                     uvc_perror(res, "start_streaming"); /* unable to start stream */
                 } else {
@@ -159,9 +185,11 @@ JNI_METHOD(void, nativeHello)
 (JNIEnv *env, jclass jclass1,
  jint vid, jint pid, jint fd,
  jint busnum,jint devAddr,
- jstring usbfs_str
+ jstring usbfs_str,jobject surface
         ) {
-    example(vid,pid,fd,busnum,devAddr,usbfs_str);
+    ANativeWindow* window=ANativeWindow_fromSurface(env,surface);
+
+    example(vid,pid,fd,busnum,devAddr,usbfs_str,window);
 }
 
 }

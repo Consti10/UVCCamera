@@ -7,12 +7,16 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.graphics.PixelFormat;
 import android.hardware.usb.UsbDevice;
 import android.hardware.usb.UsbDeviceConnection;
 import android.hardware.usb.UsbManager;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.util.Log;
+import android.view.Surface;
+import android.view.SurfaceHolder;
+import android.view.SurfaceView;
 
 import java.util.HashMap;
 import java.util.Iterator;
@@ -22,6 +26,7 @@ public class MainActivity extends AppCompatActivity {
     private static final String TAG="MainActivityX";
     private static final String ACTION_USB_PERMISSION =
             "com.android.example.USB_PERMISSION";
+    private SurfaceView surfaceView;
     private final BroadcastReceiver usbReceiver = new BroadcastReceiver() {
 
         public void onReceive(Context context, Intent intent) {
@@ -46,7 +51,11 @@ public class MainActivity extends AppCompatActivity {
                                 devnum = Integer.parseInt(v[v.length-1]);
                             }
                             //
-                            XTest.nativeHello(device.getVendorId(),device.getProductId(),connection.getFileDescriptor(),busnum,devnum,device.getDeviceName());
+                            while (surfaceView.getHolder().getSurface()==null){
+                                //wait !
+                            }
+                            XTest.nativeHello(device.getVendorId(),device.getProductId(),connection.getFileDescriptor(),busnum,devnum,device.getDeviceName(),
+                                    surfaceView.getHolder().getSurface());
                         }
                     }
                     else {
@@ -61,11 +70,15 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        surfaceView=findViewById(R.id.xSurfaceView);
+        surfaceView.getHolder().setFixedSize(640,480);
+        surfaceView.getHolder().setFormat(PixelFormat.RGBA_8888);
     }
 
     @Override
     protected void onResume(){
         super.onResume();
+
         final UsbManager usbManager = (UsbManager) getSystemService(Context.USB_SERVICE);
 
         PendingIntent permissionIntent = PendingIntent.getBroadcast(this, 0, new Intent(ACTION_USB_PERMISSION), 0);
@@ -79,6 +92,7 @@ public class MainActivity extends AppCompatActivity {
             Log.d(TAG,"USB Device"+device.getDeviceName());
             usbManager.requestPermission(device, permissionIntent);
         }
+
     }
 
 }
