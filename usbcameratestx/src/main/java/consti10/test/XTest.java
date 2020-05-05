@@ -12,4 +12,5 @@ public class XTest {
     //public static native void nativeHello(long id_camera, int venderId, int productId, int fileDescriptor, int busNum, int devAddr, String usbfs);
     public static native void nativeHello(int venderId, int productId, int fileDescriptor, int busNum, int devAddr, String usbfs, Surface surface);
 
+
 }

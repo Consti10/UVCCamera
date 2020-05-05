@@ -56,18 +56,21 @@ void cb(uvc_frame_t *frame_mjpeg, void *ptr) {
     CLOGD("Frame here ! %d",frame_mjpeg->sequence);
 
     /* We'll convert the image from YUV/JPEG to BGR, so allocate space */
-    rgba = uvc_allocate_frame(frame_mjpeg->width * frame_mjpeg->height * 2);
+    rgba = uvc_allocate_frame(frame_mjpeg->width * frame_mjpeg->height * 4);
     if (!rgba) {
        CLOGD("unable to allocate rgba frame!");
         return;
     }
 
-    uvc_error_t result = uvc_mjpeg2yuyv(frame_mjpeg, rgba);
+    uvc_error_t result = uvc_mjpeg2rgbx(frame_mjpeg, rgba);
     CLOGD("MJPEG conversion %d", result);
 
     if(result==UVC_SUCCESS){
         ANativeWindow_Buffer buffer;
         if(ANativeWindow_lock(handle->aNativeWindow, &buffer, NULL)==0){
+            CLOGD("W H Stride %d %d %d",buffer.width,buffer.height,buffer.stride);
+            //memcpy(buffer.bits,rgba->data,rgba->data_bytes);
+
             const int PREVIEW_PIXEL_BYTES=4; //RGBA
 
             const uint8_t *src = (uint8_t *)rgba->data;
@@ -83,6 +86,7 @@ void cb(uvc_frame_t *frame_mjpeg, void *ptr) {
             const int h = rgba->height < buffer.height ? rgba->height : buffer.height;
             // transfer from frame data to the Surface
             copyFrame(src, dest, w, h, src_step, dest_step);
+
             ANativeWindow_unlockAndPost(handle->aNativeWindow);
         }else{
             CLOGD("Cannot lock window");

@@ -27,6 +27,7 @@ public class MainActivity extends AppCompatActivity {
     private static final String ACTION_USB_PERMISSION =
             "com.android.example.USB_PERMISSION";
     private SurfaceView surfaceView;
+    private boolean started=false;
     private final BroadcastReceiver usbReceiver = new BroadcastReceiver() {
 
         public void onReceive(Context context, Intent intent) {
@@ -73,12 +74,27 @@ public class MainActivity extends AppCompatActivity {
         surfaceView=findViewById(R.id.xSurfaceView);
         surfaceView.getHolder().setFixedSize(640,480);
         surfaceView.getHolder().setFormat(PixelFormat.RGBA_8888);
+        surfaceView.getHolder().addCallback(new SurfaceHolder.Callback() {
+            @Override
+            public void surfaceCreated(SurfaceHolder holder) {
+                start();
+            }
+
+            @Override
+            public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
+
+            }
+
+            @Override
+            public void surfaceDestroyed(SurfaceHolder holder) {
+
+            }
+        });
     }
 
-    @Override
-    protected void onResume(){
-        super.onResume();
-
+    private void start(){
+        if(started)return;
+        started=true;
         final UsbManager usbManager = (UsbManager) getSystemService(Context.USB_SERVICE);
 
         PendingIntent permissionIntent = PendingIntent.getBroadcast(this, 0, new Intent(ACTION_USB_PERMISSION), 0);
@@ -92,7 +108,11 @@ public class MainActivity extends AppCompatActivity {
             Log.d(TAG,"USB Device"+device.getDeviceName());
             usbManager.requestPermission(device, permissionIntent);
         }
+    }
 
+    @Override
+    protected void onResume(){
+        super.onResume();
     }
 
 }
