@@ -14,7 +14,6 @@ CFLAGS := -Werror
 LOCAL_C_INCLUDES := \
 		$(LOCAL_PATH)/ \
 		$(LOCAL_PATH)/../ \
-		$(LOCAL_PATH)/../rapidjson/include \
 
 LOCAL_CFLAGS := $(LOCAL_C_INCLUDES:%=-I%)
 LOCAL_CFLAGS += -DANDROID_NDK
