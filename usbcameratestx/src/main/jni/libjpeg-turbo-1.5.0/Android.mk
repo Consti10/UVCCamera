@@ -120,15 +120,7 @@ LOCAL_SRC_FILES += \
 	jdatadst-tj.c \
 	jdatasrc-tj.c \
 
-ifeq ($(TARGET_ARCH_ABI),armeabi)
-#NEONを有効にする時
-#LOCAL_ARM_NEON := true
-LOCAL_SRC_FILES += simd/jsimd_arm.c simd/jsimd_arm_neon.S
-
-LOCAL_CFLAGS += \
-	-DSIZEOF_SIZE_T=4 \
-
-else ifeq ($(TARGET_ARCH_ABI),armeabi-v7a)
+ifeq ($(TARGET_ARCH_ABI),armeabi-v7a)
 #NEONを有効にする時
 #LOCAL_ARM_NEON := true
 LOCAL_SRC_FILES += simd/jsimd_arm.c simd/jsimd_arm_neon.S
@@ -211,40 +203,8 @@ LOCAL_SRC_FILES += \
 LOCAL_CFLAGS += \
 	-DSIZEOF_SIZE_T=4 \
 
-else ifeq ($(TARGET_ARCH_ABI),mips)
-
-# Unfortunately it seems Clang in NDK(at least until r14)
-# does not support SIMD for mips(MSA) correctly now.
-# If you really needs MSA, try `NDK_TOOLCHAIN_VERSION := 4.9` in Application.mk
-# with r13b/r14 (so that you can build libraries with GCC),
-# but I don't recommend because supporting GCC on NDK is already deprecated
-# and GCC will bre removed from NDK soon.
-
-ifeq ($(NDK_TOOLCHAIN_VERSION),clang)
-
-#disable MSA
-
-LOCAL_SRC_FILES += \
-	jsimd_none.c
-
-else
-
-LOCAL_SRC_FILES += \
-	simd/jsimd_mips.c \
-	simd/jsimd_mips_dspr2.S \
-
 endif
 
-LOCAL_CFLAGS += \
-	-DSIZEOF_SIZE_T=4 \
-
-else
-LOCAL_SRC_FILES += jsimd_none.c
-
-endif
-
-# simd/jsimd.h simd/jcolsamp.inc simd/jsimdcfg.inc.h simd/jsimdext.inc simd/jdct.inc
-#	jsimdext.inc jcolsamp.inc jdct.inc \
 
 LOCAL_CPPFLAGS += -Wno-incompatible-pointer-types
 
