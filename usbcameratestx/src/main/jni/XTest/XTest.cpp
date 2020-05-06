@@ -13,7 +13,7 @@
 
 #include <jpeglib.h>
 #include <setjmp.h>
-#include "conversion.hpp"
+#include "HuffTables.hpp"
 
 struct Handle{
     ANativeWindow* aNativeWindow;
@@ -56,7 +56,7 @@ void x_decode_mjpeg_into_ANativeWindowBuffer2(uvc_frame_t* frame_mjpeg,const ANa
     dinfo.dct_method = JDCT_IFAST;
     jpeg_start_decompress(&dinfo);
     // libjpeg error ? - output_components is 3 ofr RGB_565 ?
-    CLOGD("dinfo.output_components %d | %d",dinfo.output_components,dinfo.out_color_components);
+    //CLOGD("dinfo.output_components %d | %d",dinfo.output_components,dinfo.out_color_components);
 
     const unsigned int scanline_len = ((unsigned int)nativeWindowBuffer.stride) * BYTES_PER_PIXEL;
     JSAMPARRAY jsamparray[dinfo.output_height];

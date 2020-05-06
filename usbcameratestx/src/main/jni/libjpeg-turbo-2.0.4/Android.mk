@@ -126,6 +126,13 @@ LOCAL_SRC_FILES += \
 	jdatadst-tj.c \
 	jdatasrc-tj.c \
 
+LOCAL_SRC_FILES += \
+    cdjpeg.h \
+	rdbmp.c \
+	wrbmp.c \
+	rdppm.c \
+	wrppm.c \
+
 ifeq ($(TARGET_ARCH_ABI),armeabi-v7a)
 #NEONを有効にする時
 #LOCAL_ARM_NEON := true
