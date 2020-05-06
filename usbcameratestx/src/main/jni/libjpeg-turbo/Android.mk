@@ -1,7 +1,7 @@
 LOCAL_PATH := $(abspath $(call my-dir))
 include $(CLEAR_VARS)
 
-LOCAL_MODULE := libjpeg-turbo
+LOCAL_MODULE := libjpeg-turbo_static
 
 SOURCE_PATH := libjpeg-turbo-2.0.1
 
@@ -232,3 +232,20 @@ LOCAL_CFLAGS += \
 	-DWITH_SIMD=1 \
 
 include $(BUILD_STATIC_LIBRARY)
+
+
+######################################################################
+# jpeg-turbo1500.so
+######################################################################
+include $(CLEAR_VARS)
+LOCAL_EXPORT_C_INCLUDES := \
+		$(LOCAL_PATH)/
+
+LOCAL_DISABLE_FATAL_LINKER_WARNINGS := true
+
+LOCAL_LDLIBS := -L$(SYSROOT)/usr/lib -ldl	# to avoid NDK issue(no need for static library)
+
+LOCAL_WHOLE_STATIC_LIBRARIES = libjpeg-turbo_static
+
+LOCAL_MODULE := libjpeg-turbo
+include $(BUILD_SHARED_LIBRARY)
