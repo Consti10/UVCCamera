@@ -32,16 +32,22 @@ include $(CLEAR_VARS)
 #生成するモジュール名
 LOCAL_MODULE    := jpeg-turbo1500_static
 
+ifeq ($(TARGET_ARCH_ABI),armeabi-v7a)
+CONSTI_ARCH_DEPENDENT_SIMD_NAME := simd
+else ifeq ($(TARGET_ARCH_ABI),arm64-v8a)
+CONSTI_ARCH_DEPENDENT_SIMD_NAME := simd
+endif
+
 #インクルードファイルのパスを指定
 LOCAL_C_INCLUDES := \
         $(LOCAL_PATH)/ \
         $(LOCAL_PATH)/include \
-        $(LOCAL_PATH)/simd \
+        $(LOCAL_PATH)/$(CONSTI_ARCH_DEPENDENT_SIMD_NAME) \
 
 LOCAL_EXPORT_C_INCLUDES := \
 		$(LOCAL_PATH)/ \
         $(LOCAL_PATH)/include \
-        $(LOCAL_PATH)/simd \
+        $(LOCAL_PATH)/$(CONSTI_ARCH_DEPENDENT_SIMD_NAME) \
 
 #コンパイラのオプションフラグを指定
 LOCAL_CFLAGS := $(LOCAL_C_INCLUDES:%=-I%)
