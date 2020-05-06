@@ -33,6 +33,9 @@ android {
         ndkBuild {
             path file('src/main/jni/Android.mk')
         }
+        //cmake {
+        //    path file('src/main/jni/libjpeg-turbo-2.0.4/CMakeLists.txt')
+       // }
     }
 }
 

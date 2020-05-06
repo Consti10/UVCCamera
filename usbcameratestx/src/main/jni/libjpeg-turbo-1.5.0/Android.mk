@@ -128,7 +128,7 @@ LOCAL_SRC_FILES += \
 
 ifeq ($(TARGET_ARCH_ABI),armeabi-v7a)
 #NEONを有効にする時
-#LOCAL_ARM_NEON := true
+LOCAL_ARM_NEON := true
 LOCAL_SRC_FILES += simd/jsimd_arm.c simd/jsimd_arm_neon.S
 
 LOCAL_CFLAGS += \
@@ -136,7 +136,7 @@ LOCAL_CFLAGS += \
 
 else ifeq ($(TARGET_ARCH_ABI),arm64-v8a)
 #NEONを有効にする時
-#LOCAL_ARM_NEON := true
+LOCAL_ARM_NEON := true
 LOCAL_SRC_FILES += simd/jsimd_arm64.c simd/jsimd_arm64_neon.S
 
 LOCAL_CFLAGS += \
@@ -232,6 +232,6 @@ LOCAL_LDLIBS := -L$(SYSROOT)/usr/lib -ldl	# to avoid NDK issue(no need for stati
 
 LOCAL_WHOLE_STATIC_LIBRARIES = jpeg-turbo1500_static
 
-LOCAL_MODULE := jpeg-turbo1500
+LOCAL_MODULE := libjpeg-turbo
 include $(BUILD_SHARED_LIBRARY)
 
