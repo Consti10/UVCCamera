@@ -75,7 +75,7 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         surfaceView=findViewById(R.id.xSurfaceView);
         surfaceView.getHolder().setFixedSize(640,480);
-        surfaceView.getHolder().setFormat(PixelFormat.RGB_565);
+        surfaceView.getHolder().setFormat(PixelFormat.RGBA_8888);
         //surfaceView.getHolder().setFormat(ImageFormat.YUV_420_888);
         surfaceView.getHolder().addCallback(new SurfaceHolder.Callback() {
             @Override

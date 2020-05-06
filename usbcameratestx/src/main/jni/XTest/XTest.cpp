@@ -14,6 +14,11 @@
 #include <jpeglib.h>
 #include <setjmp.h>
 #include "HuffTables.hpp"
+#include "myTime.h"
+
+class XTEst{
+
+};
 
 struct Handle{
     ANativeWindow* aNativeWindow;
@@ -33,6 +38,7 @@ void x_decode_mjpeg_into_ANativeWindowBuffer2(uvc_frame_t* frame_mjpeg,const ANa
     dinfo.err = jpeg_std_error(&jerr.super);
     jerr.super.error_exit = _error_exit;
     jpeg_create_decompress(&dinfo);
+
     jpeg_mem_src(&dinfo, (const unsigned char*)frame_mjpeg->data, frame_mjpeg->actual_bytes/*in->data_bytes*/);	// XXX
     jpeg_read_header(&dinfo, TRUE);
     if (dinfo.dc_huff_tbl_ptrs[0] == NULL) {
@@ -135,12 +141,17 @@ void decode_mjpeg_into_ANativeWindowBuffer2(uvc_frame_t* frame_mjpeg,const ANati
  * input queue. If this function takes too long, you'll start losing frames. */
 // HM: Do we have enough time to decode mjpeg frame without dropping frames ?
 void cb(uvc_frame_t *frame_mjpeg, void *ptr) {
+
     Handle* handle=(Handle*)ptr;
     CLOGD("Got uvc_frame_t %d",frame_mjpeg->sequence);
     ANativeWindow_Buffer buffer;
     if(ANativeWindow_lock(handle->aNativeWindow, &buffer, NULL)==0){
         //decode_mjpeg_into_ANativeWindowBuffer2(frame_mjpeg,buffer);
+        const auto before=GetTicksNanos();
         x_decode_mjpeg_into_ANativeWindowBuffer2(frame_mjpeg,buffer);
+        const auto after=GetTicksNanos();
+        const auto deltaUS=after-before;
+        CLOGD("Time decoding ms %d",(int)((deltaUS / 1000) / 1000));
         ANativeWindow_unlockAndPost(handle->aNativeWindow);
     }else{
         CLOGD("Cannot lock window");
