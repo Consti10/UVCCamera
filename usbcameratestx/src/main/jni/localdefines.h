@@ -31,7 +31,8 @@
 #define LOG_TAG "libUVCCamera"
 #endif
 
-#define LIBUVC_HAS_JPEG
+// Compile without JPEG because we do not use the uvc_ conversion function(s)
+//#define LIBUVC_HAS_JPEG
 
 // write back array that got by getXXXArrayElements into original Java object and release its array
 #define	ARRAYELEMENTS_COPYBACK_AND_RELEASE 0
