@@ -8,6 +8,7 @@
 #include "../NDKHelper/MDebug.hpp"
 #include <jpeglib.h>
 
+// copied from libuvc -
 struct error_mgr {
     struct jpeg_error_mgr super;
     jmp_buf jmp;
