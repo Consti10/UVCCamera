@@ -4,7 +4,7 @@ import android.view.Surface;
 
 public class XTest {
     static{
-        System.loadLibrary("jpeg-turbo1500");
+        System.loadLibrary("jpeg-turbo");
         System.loadLibrary("usb1.0");
         System.loadLibrary("uvc");
         System.loadLibrary("XTest");
