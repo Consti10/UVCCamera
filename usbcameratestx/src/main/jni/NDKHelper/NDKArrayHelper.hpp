@@ -7,6 +7,8 @@
 
 #include <jni.h>
 #include <vector>
+#include <string>
+#include <array>
 #include <type_traits>
 
 //
@@ -27,6 +29,7 @@ namespace NDKArrayHelper{
     * @param TCpp basic cpp type like int, float inside a std::vector
     * @param TJava java array like jintArray, jfloatArray - has to match the cpp type. For example,
     * T==int => T2==jintArray
+    * For string there is an extra function DynamicSizeString
     */
     template <class TCpp,class TJava>
     static std::vector<TCpp> DynamicSizeArray(JNIEnv *env, TJava jArray){
@@ -67,6 +70,12 @@ namespace NDKArrayHelper{
         std::array<T,S> ret;
         assert(data.size()==S);
         std::memcpy(ret.data(),data.data(),data.size()*sizeof(T));
+        return ret;
+    }
+    static std::string DynamicSizeString(JNIEnv* env,jstring jstring1){
+        const char* valueP = env->GetStringUTFChars(jstring1, nullptr);
+        const std::string ret=std::string(valueP);
+        env->ReleaseStringUTFChars(jstring1,valueP);
         return ret;
     }
     // Demonstrate the type safety of DynamicSizeArray:

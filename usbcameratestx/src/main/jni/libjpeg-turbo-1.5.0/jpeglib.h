@@ -29,7 +29,7 @@
 #include "jconfig.h"            /* widely used configuration options */
 #endif
 #include "jmorecfg.h"           /* seldom changed options */
-#include "../utilbase.h"
+//#include "../utilbase.h"
 
 
 #ifdef __cplusplus

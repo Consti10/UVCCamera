@@ -10,7 +10,7 @@
 #include <cstring>
 
 #include "../NDKHelper/MDebug.hpp"
-//#include "../NDKHelper/NDKArrayHelper.hpp"
+#include "../NDKHelper/NDKArrayHelper.hpp"
 
 #include <jpeglib.h>
 #include <setjmp.h>

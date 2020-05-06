@@ -514,7 +514,6 @@ METHODDEF(void)
 write_file_header (j_compress_ptr cinfo)
 {
   my_marker_ptr marker = (my_marker_ptr) cinfo->marker;
-  LOGD("#111_1 before emit_marker");
   
   emit_marker(cinfo, M_SOI);    /* first the SOI */
 

@@ -286,7 +286,8 @@ static const char *_uvc_name_for_subtype(const uint8_t subtype) {
 	}
 }
 
-#include "../NDKHelper/MDebug.hpp"
+#define TAG_MDEBUG "MDebug"
+#define CLOGD(...) __android_log_print(ANDROID_LOG_DEBUG, TAG_MDEBUG, __VA_ARGS__)
 
 /** @brief Print camera capabilities and configuration.
  * @ingroup diag
