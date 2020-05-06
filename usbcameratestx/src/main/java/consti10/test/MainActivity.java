@@ -7,7 +7,9 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.graphics.ImageFormat;
 import android.graphics.PixelFormat;
+import android.graphics.SurfaceTexture;
 import android.hardware.usb.UsbDevice;
 import android.hardware.usb.UsbDeviceConnection;
 import android.hardware.usb.UsbManager;
@@ -73,7 +75,8 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         surfaceView=findViewById(R.id.xSurfaceView);
         surfaceView.getHolder().setFixedSize(640,480);
-        surfaceView.getHolder().setFormat(PixelFormat.RGB_888);
+        surfaceView.getHolder().setFormat(PixelFormat.RGB_565);
+        //surfaceView.getHolder().setFormat(ImageFormat.YUV_420_888);
         surfaceView.getHolder().addCallback(new SurfaceHolder.Callback() {
             @Override
             public void surfaceCreated(SurfaceHolder holder) {

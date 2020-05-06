@@ -49,6 +49,7 @@ LOCAL_LDLIBS += -llog
 LOCAL_LDLIBS += -landroid
 
 LOCAL_SHARED_LIBRARIES += usb1.0 uvc
+LOCAL_SHARED_LIBRARIES += jpeg-turbo1500
 
 LOCAL_ARM_MODE := arm
 

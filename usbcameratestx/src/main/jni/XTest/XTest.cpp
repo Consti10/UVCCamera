@@ -11,15 +11,77 @@
 
 #include "../NDKHelper/MDebug.hpp"
 
+#include <jpeglib.h>
+#include <setjmp.h>
+#include "conversion.hpp"
 
 struct Handle{
     ANativeWindow* aNativeWindow;
 };
+static void debugANativeWindowBuffer(const ANativeWindow_Buffer& buffer){
+    CLOGD("ANativeWindow_Buffer: W H Stride Format %d %d %d %d",buffer.width,buffer.height,buffer.stride,buffer.format);
+}
+
+void x_decode_mjpeg_into_ANativeWindowBuffer2(uvc_frame_t* frame_mjpeg,const ANativeWindow_Buffer& nativeWindowBuffer){
+    debugANativeWindowBuffer(nativeWindowBuffer);
+    if(nativeWindowBuffer.width!=frame_mjpeg->width || nativeWindowBuffer.height!=frame_mjpeg->height){
+        CLOGD("Error window & frame : size / width does not match");
+        return;
+    }
+    struct jpeg_decompress_struct dinfo;
+    struct error_mgr jerr;
+    dinfo.err = jpeg_std_error(&jerr.super);
+    jerr.super.error_exit = _error_exit;
+    jpeg_create_decompress(&dinfo);
+    jpeg_mem_src(&dinfo, (const unsigned char*)frame_mjpeg->data, frame_mjpeg->actual_bytes/*in->data_bytes*/);	// XXX
+    jpeg_read_header(&dinfo, TRUE);
+    if (dinfo.dc_huff_tbl_ptrs[0] == NULL) {
+        /* This frame is missing the Huffman tables: fill in the standard ones */
+        insert_huff_tables(&dinfo);
+    }
+    unsigned int BYTES_PER_PIXEL;
+    if(nativeWindowBuffer.format==AHARDWAREBUFFER_FORMAT_R8G8B8A8_UNORM || nativeWindowBuffer.format==AHARDWAREBUFFER_FORMAT_R8G8B8X8_UNORM){
+        dinfo.out_color_space = JCS_EXT_RGBA;
+        BYTES_PER_PIXEL=4;
+    }else if(nativeWindowBuffer.format==AHARDWAREBUFFER_FORMAT_R8G8B8_UNORM){
+        dinfo.out_color_space = JCS_EXT_RGB;
+        BYTES_PER_PIXEL=3;
+    }else if(nativeWindowBuffer.format==AHARDWAREBUFFER_FORMAT_R5G6B5_UNORM){
+        dinfo.out_color_space = JCS_RGB565;
+        BYTES_PER_PIXEL=2;
+    }else{
+        CLOGD("Unsupported image format");
+        return;
+    }
+    dinfo.dct_method = JDCT_IFAST;
+    jpeg_start_decompress(&dinfo);
+    // libjpeg error ? - output_components is 3 ofr RGB_565 ?
+    CLOGD("dinfo.output_components %d | %d",dinfo.output_components,dinfo.out_color_components);
+
+    const unsigned int scanline_len = ((unsigned int)nativeWindowBuffer.stride) * BYTES_PER_PIXEL;
+    JSAMPARRAY jsamparray[dinfo.output_height];
+    for(int i=0;i<dinfo.output_height;i++){
+        JSAMPROW row = (JSAMPROW)(((unsigned char*)nativeWindowBuffer.bits) + (i*scanline_len));
+        jsamparray[i]=(JSAMPARRAY)row;
+    }
+    unsigned int scanline_count = 0;
+    while (dinfo.output_scanline < dinfo.output_height)
+    {
+       // JSAMPROW row = (JSAMPROW)(((unsigned char*)nativeWindowBuffer.bits) + (scanline_count * scanline_len));
+        JSAMPROW row2= (JSAMPROW)jsamparray[scanline_count];
+        auto lines_read=jpeg_read_scanlines(&dinfo,&row2, 8);
+        CLOGD("Lines read %d",lines_read);
+        scanline_count+=lines_read;
+    }
+    //
+    jpeg_finish_decompress(&dinfo);
+    jpeg_destroy_decompress(&dinfo);
+}
 
 // Input1: uvc_frame_t of type MJPEG (ONLY)
 // Input2: ANativeWindow_Buffer of RGBA / RGBX ONLY !!
-void decode_mjpeg_into_ANativeWindowBuffer(uvc_frame_t* frame_mjpeg,const ANativeWindow_Buffer& buffer){
-    CLOGD("ANativeWindow_Buffer: W H Stride Format %d %d %d %d",buffer.width,buffer.height,buffer.stride,buffer.format);
+void decode_mjpeg_into_ANativeWindowBufferRGBX(uvc_frame_t* frame_mjpeg,const ANativeWindow_Buffer& buffer){
+    debugANativeWindowBuffer(buffer);
     uvc_frame_t* rgba = uvc_allocate_frame(frame_mjpeg->width * frame_mjpeg->height * 4);
     uvc_error_t result = uvc_mjpeg2rgbx(frame_mjpeg, rgba);
     if(result!=UVC_SUCCESS){
@@ -37,8 +99,8 @@ void decode_mjpeg_into_ANativeWindowBuffer(uvc_frame_t* frame_mjpeg,const ANativ
 // Log error if unsupported ANativeWindow hardware layout
 void decode_mjpeg_into_ANativeWindowBuffer2(uvc_frame_t* frame_mjpeg,const ANativeWindow_Buffer& buffer){
     CLOGD("ANativeWindow_Buffer: W H Stride Format %d %d %d %d",buffer.width,buffer.height,buffer.stride,buffer.format);
-    typedef uvc_error_t (*convFunc_t)(uvc_frame_t *in, uvc_frame_t *out);
 
+    typedef uvc_error_t (*convFunc_t)(uvc_frame_t *in, uvc_frame_t *out);
     unsigned int BYTES_PER_PIXEL;
     convFunc_t conversionFunction;
     if(buffer.format==AHARDWAREBUFFER_FORMAT_R8G8B8A8_UNORM || buffer.format==AHARDWAREBUFFER_FORMAT_R8G8B8X8_UNORM){
@@ -50,6 +112,9 @@ void decode_mjpeg_into_ANativeWindowBuffer2(uvc_frame_t* frame_mjpeg,const ANati
     }else if(buffer.format==AHARDWAREBUFFER_FORMAT_R5G6B5_UNORM){
         BYTES_PER_PIXEL=2;
         conversionFunction=uvc_mjpeg2rgb565;
+    //}else if(buffer.format==AHARDWAREBUFFER_FORMAT_Y8Cb8Cr8_420){
+    //    BYTES_PER_PIXEL=3;
+    //    conversionFunction=uvc_mjpeg2yuyv;
     }else{
         CLOGD("Error Unsupported format");
         return;
@@ -57,7 +122,7 @@ void decode_mjpeg_into_ANativeWindowBuffer2(uvc_frame_t* frame_mjpeg,const ANati
     uvc_frame_t frame_decoded;
     frame_decoded.data=buffer.bits;
     frame_decoded.data_bytes=frame_mjpeg->width * frame_mjpeg->height*BYTES_PER_PIXEL;
-    frame_decoded.step=640*BYTES_PER_PIXEL;
+    frame_decoded.step=buffer.stride*BYTES_PER_PIXEL;
     uvc_error_t result = conversionFunction(frame_mjpeg, &frame_decoded);
     if(result!=UVC_SUCCESS){
         CLOGD("Error MJPEG conversion %d", result);
@@ -74,7 +139,8 @@ void cb(uvc_frame_t *frame_mjpeg, void *ptr) {
     CLOGD("Got uvc_frame_t %d",frame_mjpeg->sequence);
     ANativeWindow_Buffer buffer;
     if(ANativeWindow_lock(handle->aNativeWindow, &buffer, NULL)==0){
-        decode_mjpeg_into_ANativeWindowBuffer2(frame_mjpeg,buffer);
+        //decode_mjpeg_into_ANativeWindowBuffer2(frame_mjpeg,buffer);
+        x_decode_mjpeg_into_ANativeWindowBuffer2(frame_mjpeg,buffer);
         ANativeWindow_unlockAndPost(handle->aNativeWindow);
     }else{
         CLOGD("Cannot lock window");
@@ -176,6 +242,7 @@ JNI_METHOD(void, nativeHello)
  jstring usbfs_str,jobject surface
         ) {
     ANativeWindow* window=ANativeWindow_fromSurface(env,surface);
+
 
     example(vid,pid,fd,busnum,devAddr,usbfs_str,window);
 }
