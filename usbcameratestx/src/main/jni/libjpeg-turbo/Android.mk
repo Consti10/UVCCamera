@@ -1,3 +1,4 @@
+# https://stackoverflow.com/questions/10293659/getting-multiple-target-patterns-stop-error-when-attempting-to-build-for-and/10293787
 LOCAL_PATH :=  $(call my-dir)
 include $(CLEAR_VARS)
 
