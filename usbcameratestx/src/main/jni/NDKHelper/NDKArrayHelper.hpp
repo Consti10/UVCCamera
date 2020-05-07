@@ -72,10 +72,18 @@ namespace NDKArrayHelper{
         std::memcpy(ret.data(),data.data(),data.size()*sizeof(T));
         return ret;
     }
+    // cpp std::string style
     static std::string DynamicSizeString(JNIEnv* env,jstring jstring1){
         const char* valueP = env->GetStringUTFChars(jstring1, nullptr);
         const std::string ret=std::string(valueP);
         env->ReleaseStringUTFChars(jstring1,valueP);
+        return ret;
+    }
+    // C style
+    static const char* DynamicSizeString2(JNIEnv* env,jstring jstring1){
+        const char* valueP=env->GetStringUTFChars(jstring1, nullptr);
+        char* ret= new char[env->GetStringUTFLength(jstring1)+1];
+        strcpy(ret,valueP);
         return ret;
     }
     // Demonstrate the type safety of DynamicSizeArray:

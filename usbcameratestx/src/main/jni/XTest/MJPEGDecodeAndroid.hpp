@@ -28,9 +28,9 @@ namespace MJPEGDecodeAndroid{
             return;
         }
         struct jpeg_decompress_struct dinfo;
-        struct error_mgr jerr;
-        dinfo.err = jpeg_std_error(&jerr.super);
-        jerr.super.error_exit = _error_exit;
+        //struct error_mgr jerr;
+        //dinfo.err = jpeg_std_error(&jerr.super);
+        //jerr.super.error_exit = _error_exit;
         jpeg_create_decompress(&dinfo);
 
         jpeg_mem_src(&dinfo, (const unsigned char*)frame_mjpeg->data, frame_mjpeg->actual_bytes);

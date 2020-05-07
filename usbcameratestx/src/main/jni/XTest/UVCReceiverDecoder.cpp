@@ -25,6 +25,7 @@ private:
 public:
     // Investigate: Even tough the documentation warns about dropping frames if processing takes too long
     // I cannot experience dropped frames - ?
+    // Using less threads (no extra thread for decoding) reduces throughput but also latency
     void processFrame(uvc_frame_t* frame_mjpeg){
         CLOGD("Got uvc_frame_t %d",frame_mjpeg->sequence);
         ANativeWindow_Buffer buffer;
@@ -40,6 +41,7 @@ public:
             CLOGD("Cannot lock window");
         }
     }
+    // Connect via android java first (workaround ?!)
     void startReceiving(jint vid, jint pid, jint fd,
                         jint busnum,jint devAddr,
                         jstring usbfs_str,ANativeWindow* window){
@@ -115,10 +117,13 @@ public:
         uvc_exit(ctx);
         puts("UVC exited");
     }
+
+    void stopReceiving(){
+        //uvc_stop_streaming()
+    }
 };
 
-
-
+// ------------------------------------- Native Bindings -------------------------------------
 #define JNI_METHOD(return_type, method_name) \
   JNIEXPORT return_type JNICALL              \
       Java_consti10_test_UVCReceiverDecoder_##method_name
