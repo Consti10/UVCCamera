@@ -9,6 +9,7 @@
 #include <jni.h>
 #include <android/native_window_jni.h>
 
+
 // Since I only need to support android it is cleaner to write my own conversion function.
 // inspired by the uvc_mjpeg_to_rgbx .. functions
 // Including this file adds dependency on Android and libjpeg-turbo
@@ -22,15 +23,16 @@ namespace MJPEGDecodeAndroid{
     // No unnecessary memcpy's & correctly handle stride of ANativeWindow_Buffer
     // input uvc_frame_t frame has to be of type MJPEG
     static void DecodeMJPEGtoANativeWindowBuffer(uvc_frame_t* frame_mjpeg,const ANativeWindow_Buffer& nativeWindowBuffer){
+
         debugANativeWindowBuffer(nativeWindowBuffer);
         if(nativeWindowBuffer.width!=frame_mjpeg->width || nativeWindowBuffer.height!=frame_mjpeg->height){
             CLOGD("Error window & frame : size / width does not match");
             return;
         }
         struct jpeg_decompress_struct dinfo;
-        //struct error_mgr jerr;
-        //dinfo.err = jpeg_std_error(&jerr.super);
-        //jerr.super.error_exit = _error_exit;
+        struct error_mgr jerr;
+        dinfo.err = jpeg_std_error(&jerr.super);
+        jerr.super.error_exit = _error_exit;
         jpeg_create_decompress(&dinfo);
 
         jpeg_mem_src(&dinfo, (const unsigned char*)frame_mjpeg->data, frame_mjpeg->actual_bytes);

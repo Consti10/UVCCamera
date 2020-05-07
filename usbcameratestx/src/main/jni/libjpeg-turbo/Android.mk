@@ -187,6 +187,14 @@ LOCAL_SRC_FILES += \
 	$(SOURCE_PATH)/jdatadst-tj.c \
 	$(SOURCE_PATH)/jdatasrc-tj.c \
 
+# does that fix it ?
+LOCAL_SRC_FILES += \
+    $(SOURCE_PATH)/cdjpeg.h \
+	$(SOURCE_PATH)/rdbmp.c \
+	$(SOURCE_PATH)/wrbmp.c \
+	$(SOURCE_PATH)/rdppm.c \
+	$(SOURCE_PATH)/wrppm.c \
+
 LOCAL_C_INCLUDES += \
 	$(LOCAL_PATH)/include \
 
@@ -200,6 +208,7 @@ LOCAL_C_INCLUDES += \
 
 LOCAL_EXPORT_C_INCLUDES := \
 	$(LOCAL_PATH)/$(SOURCE_PATH) \
+	$(LOCAL_PATH)/include \
 
 LOCAL_CFLAGS += \
 	-DBUILD="\"20181112\"" \
@@ -231,5 +240,6 @@ LOCAL_CFLAGS += \
 	-DNEED_SYS_TYPES_H=1 \
 	-DSTDC_HEADERS=1 \
 	-DWITH_SIMD=1 \
+
 
 include $(BUILD_STATIC_LIBRARY)
