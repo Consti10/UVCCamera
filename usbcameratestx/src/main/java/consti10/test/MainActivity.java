@@ -21,53 +21,24 @@ import java.util.Iterator;
 
 public class MainActivity extends AppCompatActivity {
     private static final String TAG="MainActivityX";
-    private static final String ACTION_USB_PERMISSION =
-            "com.android.example.USB_PERMISSION";
-    private static final String USB_DEVICE_ATTACHED="android.hardware.usb.action.USB_DEVICE_ATTACHED";
-    private static final String USB_DEVICE_DETACHED="android.hardware.usb.action.USB_DEVICE_DETACHED";
     private SurfaceView surfaceView;
-
-    private UVCReceiverDecoder uVCReceiverDecoder =new UVCReceiverDecoder();
+    private final UVCPlayer mUVCPlayer=new UVCPlayer();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        // register the broadcast receiver
-        final IntentFilter filter = new IntentFilter(ACTION_USB_PERMISSION);
-        filter.addAction(USB_DEVICE_ATTACHED);
-        filter.addAction(USB_DEVICE_DETACHED);
-        registerReceiver(new BroadcastReceiver() {
-            @Override
-            public void onReceive(Context context, Intent intent) {
-                onReceiveBroadcast(context,intent);
-            }
-        },filter);
         surfaceView=findViewById(R.id.xSurfaceView);
         surfaceView.getHolder().setFixedSize(640,480);
         surfaceView.getHolder().setFormat(PixelFormat.RGBA_8888);
         //surfaceView.getHolder().setFormat(ImageFormat.YUV_420_888);
-        surfaceView.getHolder().addCallback(new SurfaceHolder.Callback() {
-            @Override
-            public void surfaceCreated(SurfaceHolder holder) {
-                start();
-            }
-
-            @Override
-            public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
-            }
-
-            @Override
-            public void surfaceDestroyed(SurfaceHolder holder) {
-                uVCReceiverDecoder.stopReceiving();
-            }
-        });
+        surfaceView.getHolder().addCallback(mUVCPlayer);
     }
 
     private void start(){
         final UsbManager usbManager = (UsbManager) getSystemService(Context.USB_SERVICE);
 
-        final PendingIntent permissionIntent = PendingIntent.getBroadcast(this, 0, new Intent(ACTION_USB_PERMISSION), 0);
+        final PendingIntent permissionIntent = PendingIntent.getBroadcast(this, 0, new Intent(UVCPlayer.ACTION_USB_PERMISSION), 0);
 
         final HashMap<String, UsbDevice> deviceList =usbManager.getDeviceList();
 
@@ -82,36 +53,19 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-
     @Override
     protected void onResume(){
         super.onResume();
+        //register the broadcast receiver
+        registerReceiver(mUVCPlayer,UVCPlayer.getIntentFilter());
+        start();
     }
 
-
-    private void onReceiveBroadcast(Context context, Intent intent) {
-        String action = intent.getAction();
-        if (action.equals(ACTION_USB_PERMISSION)) {
-            Log.d(TAG,"ACTION_USB_PERMISSION");
-            final UsbDevice device = (UsbDevice)intent.getParcelableExtra(UsbManager.EXTRA_DEVICE);
-            if (intent.getBooleanExtra(UsbManager.EXTRA_PERMISSION_GRANTED, false)) {
-                if(device != null){
-                    uVCReceiverDecoder.startReceiving(context,device,surfaceView.getHolder().getSurface());
-                }
-            }
-            else {
-                Log.d(TAG, "permission denied for device " + device);
-            }
-
-        }else if(action.contentEquals(USB_DEVICE_ATTACHED)){
-            Log.d(TAG,"USB_DEVICE_ATTACHED");
-            final UsbDevice device = (UsbDevice)intent.getParcelableExtra(UsbManager.EXTRA_DEVICE);
-            uVCReceiverDecoder.startReceiving(context,device,surfaceView.getHolder().getSurface());
-        }else if(action.contentEquals(USB_DEVICE_DETACHED)){
-            Log.d(TAG,"USB_DEVICE_DETACHED");
-        }else{
-            Log.d(TAG,"Unknwn broadcast");
-        }
+    @Override
+    protected void onPause(){
+        super.onPause();
+        unregisterReceiver(mUVCPlayer);
+        mUVCPlayer.cancel();
     }
 
 }

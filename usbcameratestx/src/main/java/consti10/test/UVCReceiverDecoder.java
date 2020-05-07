@@ -1,12 +1,16 @@
 package consti10.test;
 
+import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.content.Intent;
 import android.hardware.usb.UsbDevice;
 import android.hardware.usb.UsbDeviceConnection;
 import android.hardware.usb.UsbManager;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.Surface;
+
+import androidx.annotation.Nullable;
 
 // Handles receiving & decoding of UVC devices that supply MJPEG frames (like ROTG02)
 public class UVCReceiverDecoder {
@@ -24,15 +28,13 @@ public class UVCReceiverDecoder {
         nativeInstance=nativeConstruct();
     }
 
-    public void startReceiving(final Context context,final UsbDevice device,final Surface surface){
+    public void startReceiving(final Context context,final UsbDevice device){
         if(alreadyStreaming){
             Log.d(TAG,"startReceiving() already called");
             return;
         }
-
         final UsbManager usbManager = (UsbManager) context.getSystemService(Context.USB_SERVICE);
         final UsbDeviceConnection connection=usbManager.openDevice(device);
-
         final String name = device.getDeviceName();
         final String[] v = !TextUtils.isEmpty(name) ? name.split("/") : null;
         int busnum = 0;
@@ -42,10 +44,8 @@ public class UVCReceiverDecoder {
             devnum = Integer.parseInt(v[v.length-1]);
         }
         //
-        nativeStartReceiving(nativeInstance,device.getVendorId(),device.getProductId(),connection.getFileDescriptor(),busnum,devnum,device.getDeviceName(),
-                surface);
+        nativeStartReceiving(nativeInstance,device.getVendorId(),device.getProductId(),connection.getFileDescriptor(),busnum,devnum,device.getDeviceName());
         alreadyStreaming=true;
-        //nativeSetOutputSurface(surface);
     }
 
     public void stopReceiving(){
@@ -53,9 +53,21 @@ public class UVCReceiverDecoder {
         alreadyStreaming=false;
     }
 
+    /**
+     * If @param surface!=null a native reference is created and
+     * future uvc frames will be decoded into the underlying buffer(s) of the surface
+     * If @param surface==null the native reference will be deleted and future frames won't be decoded
+     */
+    public void setSurface(@Nullable Surface surface){
+        nativeSetSurface(nativeInstance,surface);
+    }
 
     private static native long nativeConstruct();
     private static native void nativeDelete(long nativeInstance);
-    private static native void nativeStartReceiving(long nativeInstance,int venderId, int productId, int fileDescriptor, int busNum, int devAddr, String usbfs,Surface surface);
+    private static native void nativeStartReceiving(long nativeInstance,int venderId, int productId, int fileDescriptor, int busNum, int devAddr, String usbfs);
     private static native void nativeStopReceiving(long nativeInstance);
+    private static native void nativeSetSurface(long nativeInstance,Surface surface);
+
+
+
 }

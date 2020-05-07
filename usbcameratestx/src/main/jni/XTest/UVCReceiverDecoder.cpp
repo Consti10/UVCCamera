@@ -27,11 +27,23 @@ private:
     uvc_device_handle_t *devh;
     boolean isStreaming;
 public:
+    void setSurface(JNIEnv* env,jobject surface){
+        if(surface== nullptr){
+            ANativeWindow_release(aNativeWindow);
+            aNativeWindow=nullptr;
+        }else{
+            aNativeWindow=ANativeWindow_fromSurface(env,surface);
+        }
+    }
     // Investigate: Even tough the documentation warns about dropping frames if processing takes too long
     // I cannot experience dropped frames - ?
     // Using less threads (no extra thread for decoding) reduces throughput but also latency
     void processFrame(uvc_frame_t* frame_mjpeg){
         CLOGD("Got uvc_frame_t %d",frame_mjpeg->sequence);
+        if(aNativeWindow==nullptr){
+            CLOGD("No surface");
+            return;
+        }
         ANativeWindow_Buffer buffer;
         if(ANativeWindow_lock(aNativeWindow, &buffer, NULL)==0){
             //decode_mjpeg_into_ANativeWindowBuffer2(frame_mjpeg,buffer);
@@ -48,8 +60,7 @@ public:
     // Connect via android java first (workaround ?!)
     void startReceiving(jint vid, jint pid, jint fd,
                         jint busnum,jint devAddr,
-                        jstring usbfs_str,ANativeWindow* window){
-        this->aNativeWindow=window;
+                        jstring usbfs_str){
         uvc_stream_ctrl_t ctrl;
         uvc_error_t res;
         /* Initialize a UVC service context. Libuvc will set up its own libusb
@@ -120,10 +131,7 @@ public:
             uvc_close(devh);
             uvc_unref_device(dev);
             uvc_exit(ctx);
-        }
-        if(aNativeWindow!= nullptr){
-            ANativeWindow_release(aNativeWindow);
-            aNativeWindow= nullptr;
+            isStreaming=false;
         }
     }
 };
@@ -154,13 +162,18 @@ JNI_METHOD(void, nativeStartReceiving)
 (JNIEnv *env, jclass jclass1,jlong nativeInstance,
  jint vid, jint pid, jint fd,
  jint busnum,jint devAddr,
- jstring usbfs_str,jobject surface
+ jstring usbfs_str
 ) {
-    ANativeWindow* window=ANativeWindow_fromSurface(env,surface);
-    native(nativeInstance)->startReceiving(vid,pid,fd,busnum,devAddr,usbfs_str,window);
+    native(nativeInstance)->startReceiving(vid,pid,fd,busnum,devAddr,usbfs_str);
 }
 JNI_METHOD(void, nativeStopReceiving)
 (JNIEnv *env, jclass jclass1, jlong p) {
    native(p)->stopReceiving();
 }
+
+JNI_METHOD(void, nativeSetSurface)
+(JNIEnv *env, jclass jclass1, jlong javaP,jobject surface) {
+   native(javaP)->setSurface(env,surface);
+}
+
 }
