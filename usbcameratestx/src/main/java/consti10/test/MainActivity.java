@@ -7,16 +7,13 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.graphics.ImageFormat;
 import android.graphics.PixelFormat;
-import android.graphics.SurfaceTexture;
 import android.hardware.usb.UsbDevice;
 import android.hardware.usb.UsbDeviceConnection;
 import android.hardware.usb.UsbManager;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.util.Log;
-import android.view.Surface;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 
@@ -30,12 +27,13 @@ public class MainActivity extends AppCompatActivity {
             "com.android.example.USB_PERMISSION";
     private SurfaceView surfaceView;
     private boolean started=false;
-    private final BroadcastReceiver usbReceiver = new BroadcastReceiver() {
+    private final BroadcastReceiver usbPermissionReceiver = new BroadcastReceiver() {
 
         public void onReceive(Context context, Intent intent) {
             String action = intent.getAction();
             if (ACTION_USB_PERMISSION.equals(action)) {
                 synchronized (this) {
+
                     UsbDevice device = (UsbDevice)intent.getParcelableExtra(UsbManager.EXTRA_DEVICE);
 
                     if (intent.getBooleanExtra(UsbManager.EXTRA_PERMISSION_GRANTED, false)) {
@@ -73,6 +71,9 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        // register the broadcast receiver
+        final IntentFilter filter = new IntentFilter(ACTION_USB_PERMISSION);
+        registerReceiver(usbPermissionReceiver, filter);
         surfaceView=findViewById(R.id.xSurfaceView);
         surfaceView.getHolder().setFixedSize(640,480);
         surfaceView.getHolder().setFormat(PixelFormat.RGBA_8888);
@@ -100,17 +101,33 @@ public class MainActivity extends AppCompatActivity {
         started=true;
         final UsbManager usbManager = (UsbManager) getSystemService(Context.USB_SERVICE);
 
-        PendingIntent permissionIntent = PendingIntent.getBroadcast(this, 0, new Intent(ACTION_USB_PERMISSION), 0);
-        IntentFilter filter = new IntentFilter(ACTION_USB_PERMISSION);
-        registerReceiver(usbReceiver, filter);
+        final PendingIntent permissionIntent = PendingIntent.getBroadcast(this, 0, new Intent(ACTION_USB_PERMISSION), 0);
 
         final HashMap<String, UsbDevice> deviceList =usbManager.getDeviceList();
+
+        Log.d(TAG,"There are "+deviceList.size()+" devices connected");
+        filterFOrUVC(deviceList);
+
         final Iterator<UsbDevice> deviceIterator = deviceList.values().iterator();
         while(deviceIterator.hasNext()){
             final UsbDevice device = deviceIterator.next();
             Log.d(TAG,"USB Device"+device.getDeviceName());
             usbManager.requestPermission(device, permissionIntent);
         }
+    }
+
+    private static HashMap<String,UsbDevice> filterFOrUVC(final HashMap<String,UsbDevice> deviceList){
+        final HashMap<String,UsbDevice> ret=new HashMap<>();
+        final Iterator<String> keyIterator = deviceList.keySet().iterator();
+        while(keyIterator.hasNext()){
+            final String key=keyIterator.next();
+            final UsbDevice device = deviceList.get(key);
+            if(device.getDeviceClass()==255 && device.getDeviceSubclass()==2){
+                Log.d(TAG,"Found okay device");
+            }
+            ret.put(key,device);
+        }
+        return ret;
     }
 
     @Override
