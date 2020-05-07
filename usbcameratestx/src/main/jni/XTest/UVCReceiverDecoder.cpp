@@ -12,11 +12,7 @@
 #include "../NDKHelper/MDebug.hpp"
 #include "../NDKHelper/NDKArrayHelper.hpp"
 
-#include <jpeglib.h>
-#include <setjmp.h>
-#include "HuffTables.hpp"
-#include "myTime.h"
-
+#include "MyTime.hpp"
 #include "MJPEGDecodeAndroid.hpp"
 
 class UVCReceiverDecoder{

@@ -5,15 +5,13 @@
 #ifndef UVCCAMERA_MJPEGDECODEANDROID_HPP
 #define UVCCAMERA_MJPEGDECODEANDROID_HPP
 
-#include <jpeglib.h>
 #include "HuffTables.hpp"
-#include "../NDKHelper/MDebug.hpp"
 #include <jni.h>
 #include <android/native_window_jni.h>
 
 // Since I only need to support android it is cleaner to write my own conversion function.
 // inspired by the uvc_mjpeg_to_rgbx .. functions
-// AIncluding this file adds dependency on Android and libjpeg-turbo
+// Including this file adds dependency on Android and libjpeg-turbo
 
 namespace MJPEGDecodeAndroid{
     // Helper that prints the current configuration of ANativeWindow_Buffer

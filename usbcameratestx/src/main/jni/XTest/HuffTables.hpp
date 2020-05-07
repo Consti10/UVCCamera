@@ -7,8 +7,11 @@
 
 #include "../NDKHelper/MDebug.hpp"
 #include <jpeglib.h>
+#include <setjmp.h>
 
-// copied from libuvc -
+/**
+ * Copied from somewhere in the libuvc library - it was declared in .c file but I needed it for the MJPEGDecodeAndroid file
+ */
 struct error_mgr {
     struct jpeg_error_mgr super;
     jmp_buf jmp;
