@@ -22,6 +22,10 @@ private:
     static void callbackProcessFrame(uvc_frame_t* frame, void* self){
         ((UVCReceiverDecoder *) self)->processFrame(frame);
     }
+    uvc_context_t *ctx;
+    uvc_device_t *dev;
+    uvc_device_handle_t *devh;
+    boolean isStreaming;
 public:
     // Investigate: Even tough the documentation warns about dropping frames if processing takes too long
     // I cannot experience dropped frames - ?
@@ -46,9 +50,6 @@ public:
                         jint busnum,jint devAddr,
                         jstring usbfs_str,ANativeWindow* window){
         this->aNativeWindow=window;
-        uvc_context_t *ctx;
-        uvc_device_t *dev;
-        uvc_device_handle_t *devh;
         uvc_stream_ctrl_t ctrl;
         uvc_error_t res;
         /* Initialize a UVC service context. Libuvc will set up its own libusb
@@ -73,19 +74,15 @@ public:
             /* Try to open the device: requires exclusive access */
             res = uvc_open(dev, &devh);
             if (res < 0) {
-                uvc_perror(res, "uvc_open"); /* unable to open device */
+                CLOGD("Error uvc_open"); /* unable to open device */
             } else {
                 CLOGD("Device opened");
-                /* Print out a message containing all the information that libuvc
-                 * knows about the device */
-                const char* mLog;
-                uvc_print_diag(devh,stderr);
 
-                //X MJPEG only /* Try to negotiate a 640x480 30 fps YUYV stream profile */
+                //X MJPEG only
                 res = uvc_get_stream_ctrl_format_size(
-                        devh, &ctrl, /* result stored in ctrl */
-                        UVC_FRAME_FORMAT_MJPEG, /* YUV 422, aka YUV 4:2:2. try _COMPRESSED */
-                        640, 480, 30 /* width, height, fps */
+                        devh, &ctrl,
+                        UVC_FRAME_FORMAT_MJPEG,
+                        640, 480, 30
                 );
                 /* Print out the result */
                 uvc_print_stream_ctrl(&ctrl, stderr);
@@ -94,11 +91,12 @@ public:
                 } else {
                     res = uvc_start_streaming(devh, &ctrl, this->callbackProcessFrame, this, 0);
                     if (res < 0) {
-                        uvc_perror(res, "start_streaming"); /* unable to start stream */
+                        CLOGD("Error start_streaming %d",res); /* unable to start stream */
                     } else {
-                        puts("Streaming...");
-                        uvc_set_ae_mode(devh, 1); /* e.g., turn on auto exposure */
-                        //TODO start poling new frames ? Maybe ..:
+                        CLOGD("Streaming...");
+                        //uvc_set_ae_mode(devh, 1); /* e.g., turn on auto exposure */
+                        isStreaming=true;
+                        return;
                         sleep(10); /* stream for 10 seconds */
                         /* End the stream. Blocks until last callback is serviced */
                         uvc_stop_streaming(devh);
@@ -119,7 +117,16 @@ public:
     }
 
     void stopReceiving(){
-        //uvc_stop_streaming()
+        if(isStreaming){
+            uvc_stop_streaming(devh);
+            uvc_close(devh);
+            uvc_unref_device(dev);
+            uvc_exit(ctx);
+        }
+        if(aNativeWindow!= nullptr){
+            ANativeWindow_release(aNativeWindow);
+            aNativeWindow= nullptr;
+        }
     }
 };
 
@@ -154,5 +161,8 @@ JNI_METHOD(void, nativeStartReceiving)
     ANativeWindow* window=ANativeWindow_fromSurface(env,surface);
     native(nativeInstance)->startReceiving(vid,pid,fd,busnum,devAddr,usbfs_str,window);
 }
-
+JNI_METHOD(void, nativeStopReceiving)
+(JNIEnv *env, jclass jclass1, jlong p) {
+   native(p)->stopReceiving();
+}
 }

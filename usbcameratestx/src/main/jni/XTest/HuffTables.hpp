@@ -22,7 +22,7 @@ static void _error_exit(j_common_ptr dinfo) {
     char err_msg[1024];
     (*dinfo->err->format_message)(dinfo, err_msg);
     err_msg[1023] = 0;
-    CLOGD("err=%s", err_msg);
+    CLOGD("LIBJPEG ERROR %s", err_msg);
     longjmp(myerr->jmp, 1);
 }
 

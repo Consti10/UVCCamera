@@ -26,7 +26,6 @@ public class MainActivity extends AppCompatActivity {
     private static final String USB_DEVICE_ATTACHED="android.hardware.usb.action.USB_DEVICE_ATTACHED";
     private static final String USB_DEVICE_DETACHED="android.hardware.usb.action.USB_DEVICE_DETACHED";
     private SurfaceView surfaceView;
-    private boolean started=false;
 
     private UVCReceiverDecoder uVCReceiverDecoder =new UVCReceiverDecoder();
 
@@ -56,19 +55,16 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
-
             }
 
             @Override
             public void surfaceDestroyed(SurfaceHolder holder) {
-
+                uVCReceiverDecoder.stopReceiving();
             }
         });
     }
 
     private void start(){
-        if(started)return;
-        started=true;
         final UsbManager usbManager = (UsbManager) getSystemService(Context.USB_SERVICE);
 
         final PendingIntent permissionIntent = PendingIntent.getBroadcast(this, 0, new Intent(ACTION_USB_PERMISSION), 0);
@@ -106,6 +102,7 @@ public class MainActivity extends AppCompatActivity {
     protected void onResume(){
         super.onResume();
     }
+
 
     private void onReceiveBroadcast(Context context, Intent intent) {
         String action = intent.getAction();
