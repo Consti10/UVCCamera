@@ -7,16 +7,17 @@ import android.hardware.usb.UsbManager;
 import android.text.TextUtils;
 import android.view.Surface;
 
-public class XTest {
+// Handles receiving & decoding of UVC devices that supply MJPEG frames (like ROTG02)
+public class UVCReceiverDecoder {
     static{
         System.loadLibrary("jpeg-turbo");
         System.loadLibrary("usb1.0");
         System.loadLibrary("uvc");
-        System.loadLibrary("XTest");
+        System.loadLibrary("UVCReceiverDecoder");
     }
     private long nativeInstance;
 
-    public XTest(){
+    public UVCReceiverDecoder(){
         nativeInstance=nativeConstruct();
     }
 

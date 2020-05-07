@@ -19,12 +19,12 @@
 
 #include "MJPEGDecodeAndroid.hpp"
 
-class XTEst{
+class UVCReceiverDecoder{
 private:
     ANativeWindow* aNativeWindow=nullptr;
     // Need a static function that calls class instance for the c-style uvc lib
     static void callbackProcessFrame(uvc_frame_t* frame, void* self){
-        ((XTEst *) self)->processFrame(frame);
+        ((UVCReceiverDecoder *) self)->processFrame(frame);
     }
 public:
     // Investigate: Even tough the documentation warns about dropping frames if processing takes too long
@@ -125,19 +125,19 @@ public:
 
 #define JNI_METHOD(return_type, method_name) \
   JNIEXPORT return_type JNICALL              \
-      Java_consti10_test_XTest_##method_name
+      Java_consti10_test_UVCReceiverDecoder_##method_name
 extern "C" {
 
-inline jlong jptr(XTEst *p) {
+inline jlong jptr(UVCReceiverDecoder *p) {
     return reinterpret_cast<intptr_t>(p);
 }
-inline XTEst *native(jlong ptr) {
-    return reinterpret_cast<XTEst*>(ptr);
+inline UVCReceiverDecoder *native(jlong ptr) {
+    return reinterpret_cast<UVCReceiverDecoder*>(ptr);
 }
 
 JNI_METHOD(jlong, nativeConstruct)
 (JNIEnv *env, jclass jclass1) {
-    return jptr(new XTEst());
+    return jptr(new UVCReceiverDecoder());
 }
 JNI_METHOD(void, nativeDelete)
 (JNIEnv *env, jclass jclass1, jlong p) {

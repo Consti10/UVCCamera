@@ -9,10 +9,8 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.graphics.PixelFormat;
 import android.hardware.usb.UsbDevice;
-import android.hardware.usb.UsbDeviceConnection;
 import android.hardware.usb.UsbManager;
 import android.os.Bundle;
-import android.text.TextUtils;
 import android.util.Log;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
@@ -30,7 +28,7 @@ public class MainActivity extends AppCompatActivity {
     private SurfaceView surfaceView;
     private boolean started=false;
 
-    private XTest xTest=new XTest();
+    private UVCReceiverDecoder uVCReceiverDecoder =new UVCReceiverDecoder();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -116,7 +114,7 @@ public class MainActivity extends AppCompatActivity {
             final UsbDevice device = (UsbDevice)intent.getParcelableExtra(UsbManager.EXTRA_DEVICE);
             if (intent.getBooleanExtra(UsbManager.EXTRA_PERMISSION_GRANTED, false)) {
                 if(device != null){
-                    xTest.startReceiving(context,device,surfaceView.getHolder().getSurface());
+                    uVCReceiverDecoder.startReceiving(context,device,surfaceView.getHolder().getSurface());
                 }
             }
             else {
@@ -126,7 +124,7 @@ public class MainActivity extends AppCompatActivity {
         }else if(action.contentEquals(USB_DEVICE_ATTACHED)){
             Log.d(TAG,"USB_DEVICE_ATTACHED");
             final UsbDevice device = (UsbDevice)intent.getParcelableExtra(UsbManager.EXTRA_DEVICE);
-            xTest.startReceiving(context,device,surfaceView.getHolder().getSurface());
+            uVCReceiverDecoder.startReceiving(context,device,surfaceView.getHolder().getSurface());
         }else if(action.contentEquals(USB_DEVICE_DETACHED)){
             Log.d(TAG,"USB_DEVICE_DETACHED");
         }else{

@@ -32,7 +32,7 @@ LOCAL_SHARED_LIBRARIES +=libjpeg-turbo
 LOCAL_ARM_MODE := arm
 
 LOCAL_SRC_FILES := \
-		XTest.cpp \
+		UVCReceiverDecoder.cpp \
 
-LOCAL_MODULE    := XTest
+LOCAL_MODULE    := UVCReceiverDecoder
 include $(BUILD_SHARED_LIBRARY)
