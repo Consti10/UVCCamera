@@ -105,7 +105,6 @@ public:
                 }
                 /* Release our handle on the device */
                 uvc_close(devh);
-                puts("Device closed");
             }
             /* Release the device descriptor */
             uvc_unref_device(dev);
@@ -113,7 +112,6 @@ public:
         /* Close the UVC context. This closes and cleans up any existing device handles,
          * and it closes the libusb context if one was not provided. */
         uvc_exit(ctx);
-        puts("UVC exited");
     }
 
     void stopReceiving(){

@@ -56,10 +56,6 @@ public class UVCReceiverDecoder {
 
     private static native long nativeConstruct();
     private static native void nativeDelete(long nativeInstance);
-
     private static native void nativeStartReceiving(long nativeInstance,int venderId, int productId, int fileDescriptor, int busNum, int devAddr, String usbfs,Surface surface);
     private static native void nativeStopReceiving(long nativeInstance);
-
-
-    //public static native void nativeHello(long id_camera, int venderId, int productId, int fileDescriptor, int busNum, int devAddr, String usbfs);
 }

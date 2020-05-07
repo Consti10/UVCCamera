@@ -72,7 +72,7 @@ public class MainActivity extends AppCompatActivity {
         final HashMap<String, UsbDevice> deviceList =usbManager.getDeviceList();
 
         Log.d(TAG,"There are "+deviceList.size()+" devices connected");
-        filterFOrUVC(deviceList);
+        UVCHelper.filterFOrUVC(deviceList);
 
         final Iterator<UsbDevice> deviceIterator = deviceList.values().iterator();
         while(deviceIterator.hasNext()){
@@ -82,21 +82,6 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    private static HashMap<String,UsbDevice> filterFOrUVC(final HashMap<String,UsbDevice> deviceList){
-        final HashMap<String,UsbDevice> ret=new HashMap<>();
-        final Iterator<String> keyIterator = deviceList.keySet().iterator();
-        while(keyIterator.hasNext()){
-            final String key=keyIterator.next();
-            final UsbDevice device = deviceList.get(key);
-            if(device.getDeviceClass()==255 && device.getDeviceSubclass()==2){
-                Log.d(TAG,"Found okay device");
-            }else{
-                Log.d(TAG,"Not UVC cl"+device.getDeviceClass()+" subcl "+device.getDeviceSubclass());
-            }
-            ret.put(key,device);
-        }
-        return ret;
-    }
 
     @Override
     protected void onResume(){
