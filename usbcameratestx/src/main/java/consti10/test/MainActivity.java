@@ -25,47 +25,12 @@ public class MainActivity extends AppCompatActivity {
     private static final String TAG="MainActivityX";
     private static final String ACTION_USB_PERMISSION =
             "com.android.example.USB_PERMISSION";
+    private static final String USB_DEVICE_ATTACHED="android.hardware.usb.action.USB_DEVICE_ATTACHED";
+    private static final String USB_DEVICE_DETACHED="android.hardware.usb.action.USB_DEVICE_DETACHED";
     private SurfaceView surfaceView;
     private boolean started=false;
-    private final BroadcastReceiver usbPermissionReceiver = new BroadcastReceiver() {
 
-        public void onReceive(Context context, Intent intent) {
-            String action = intent.getAction();
-            if (ACTION_USB_PERMISSION.equals(action)) {
-                synchronized (this) {
-
-                    UsbDevice device = (UsbDevice)intent.getParcelableExtra(UsbManager.EXTRA_DEVICE);
-
-                    if (intent.getBooleanExtra(UsbManager.EXTRA_PERMISSION_GRANTED, false)) {
-                        if(device != null){
-                            //call method to set up device communication
-                            final UsbManager usbManager = (UsbManager) getSystemService(Context.USB_SERVICE);
-                            final UsbDeviceConnection connection=usbManager.openDevice(device);
-
-                            //
-                            final String name = device.getDeviceName();
-                            final String[] v = !TextUtils.isEmpty(name) ? name.split("/") : null;
-                            int busnum = 0;
-                            int devnum = 0;
-                            if (v != null) {
-                                busnum = Integer.parseInt(v[v.length-2]);
-                                devnum = Integer.parseInt(v[v.length-1]);
-                            }
-                            //
-                            while (surfaceView.getHolder().getSurface()==null){
-                                //wait !
-                            }
-                            XTest.nativeHello(device.getVendorId(),device.getProductId(),connection.getFileDescriptor(),busnum,devnum,device.getDeviceName(),
-                                    surfaceView.getHolder().getSurface());
-                        }
-                    }
-                    else {
-                        Log.d(TAG, "permission denied for device " + device);
-                    }
-                }
-            }
-        }
-    };
+    private XTest xTest=new XTest();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -73,7 +38,14 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         // register the broadcast receiver
         final IntentFilter filter = new IntentFilter(ACTION_USB_PERMISSION);
-        registerReceiver(usbPermissionReceiver, filter);
+        filter.addAction(USB_DEVICE_ATTACHED);
+        filter.addAction(USB_DEVICE_DETACHED);
+        registerReceiver(new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                onReceiveBroadcast(context,intent);
+            }
+        },filter);
         surfaceView=findViewById(R.id.xSurfaceView);
         surfaceView.getHolder().setFixedSize(640,480);
         surfaceView.getHolder().setFormat(PixelFormat.RGBA_8888);
@@ -124,6 +96,8 @@ public class MainActivity extends AppCompatActivity {
             final UsbDevice device = deviceList.get(key);
             if(device.getDeviceClass()==255 && device.getDeviceSubclass()==2){
                 Log.d(TAG,"Found okay device");
+            }else{
+                Log.d(TAG,"Not UVC cl"+device.getDeviceClass()+" subcl "+device.getDeviceSubclass());
             }
             ret.put(key,device);
         }
@@ -133,6 +107,31 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onResume(){
         super.onResume();
+    }
+
+    private void onReceiveBroadcast(Context context, Intent intent) {
+        String action = intent.getAction();
+        if (action.equals(ACTION_USB_PERMISSION)) {
+            Log.d(TAG,"ACTION_USB_PERMISSION");
+            final UsbDevice device = (UsbDevice)intent.getParcelableExtra(UsbManager.EXTRA_DEVICE);
+            if (intent.getBooleanExtra(UsbManager.EXTRA_PERMISSION_GRANTED, false)) {
+                if(device != null){
+                    xTest.startReceiving(context,device,surfaceView.getHolder().getSurface());
+                }
+            }
+            else {
+                Log.d(TAG, "permission denied for device " + device);
+            }
+
+        }else if(action.contentEquals(USB_DEVICE_ATTACHED)){
+            Log.d(TAG,"USB_DEVICE_ATTACHED");
+            final UsbDevice device = (UsbDevice)intent.getParcelableExtra(UsbManager.EXTRA_DEVICE);
+            xTest.startReceiving(context,device,surfaceView.getHolder().getSurface());
+        }else if(action.contentEquals(USB_DEVICE_DETACHED)){
+            Log.d(TAG,"USB_DEVICE_DETACHED");
+        }else{
+            Log.d(TAG,"Unknwn broadcast");
+        }
     }
 
 }
