@@ -1,4 +1,4 @@
-package consti10.test;
+package constantin.test;
 
 import android.hardware.usb.UsbDevice;
 import android.util.Log;

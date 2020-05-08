@@ -1,4 +1,4 @@
-package consti10.test;
+package constantin.test;
 
 import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
@@ -36,7 +36,6 @@ public class UVCPlayer extends BroadcastReceiver implements SurfaceHolder.Callba
         this.parent=parent;
         usbManager=(UsbManager)parent.getSystemService(Context.USB_SERVICE);
     }
-
 
     @Override
     public void onReceive(Context context, Intent intent) {

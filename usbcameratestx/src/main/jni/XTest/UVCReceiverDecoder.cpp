@@ -160,7 +160,7 @@ public:
 // ------------------------------------- Native Bindings -------------------------------------
 #define JNI_METHOD(return_type, method_name) \
   JNIEXPORT return_type JNICALL              \
-      Java_consti10_test_UVCReceiverDecoder_##method_name
+      Java_constantin_test_UVCReceiverDecoder_##method_name
 extern "C" {
 
 inline jlong jptr(UVCReceiverDecoder *p) {
