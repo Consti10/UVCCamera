@@ -16,9 +16,9 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(constantin.test.R.layout.activity_main);
+        setContentView(R.layout.activity_main);
         mUVCPlayer=new UVCPlayer(this);
-        surfaceView=findViewById(constantin.test.R.id.xSurfaceView);
+        surfaceView=findViewById(R.id.xSurfaceView);
         surfaceView.getHolder().setFixedSize(640,480);
         surfaceView.getHolder().addCallback(mUVCPlayer);
     }
