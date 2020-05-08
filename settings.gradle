@@ -25,4 +25,5 @@
 //include ':usbCameraCommon'
 //include ':usbCameraTest3'
 
-include ':usbcameratestx'
+include ':uvcintegration'
+include ':example'

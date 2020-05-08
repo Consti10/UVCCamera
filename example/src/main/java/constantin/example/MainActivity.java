@@ -1,9 +1,11 @@
-package constantin.test;
+package constantin.example;
 
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.os.Bundle;
 import android.view.SurfaceView;
+
+import constantin.test.UVCPlayer;
 
 
 public class MainActivity extends AppCompatActivity {
@@ -14,9 +16,9 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
+        setContentView(constantin.test.R.layout.activity_main);
         mUVCPlayer=new UVCPlayer(this);
-        surfaceView=findViewById(R.id.xSurfaceView);
+        surfaceView=findViewById(constantin.test.R.id.xSurfaceView);
         surfaceView.getHolder().setFixedSize(640,480);
         surfaceView.getHolder().addCallback(mUVCPlayer);
     }
