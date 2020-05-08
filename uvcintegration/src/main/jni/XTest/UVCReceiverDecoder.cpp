@@ -19,7 +19,7 @@
 
 class UVCReceiverDecoder{
 private:
-    // Window that holds the buffer(s) frames will be decoded into
+    // Window that holds the buffer(s) into which uvc frames will be decoded
     ANativeWindow* aNativeWindow=nullptr;
     // Setting / updating the window happens from 2 different threads.
     // Not 100% sure if needed, but can't hurt
