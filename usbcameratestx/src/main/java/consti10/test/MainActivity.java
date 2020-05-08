@@ -31,8 +31,6 @@ public class MainActivity extends AppCompatActivity {
         mUVCPlayer=new UVCPlayer(this);
         surfaceView=findViewById(R.id.xSurfaceView);
         surfaceView.getHolder().setFixedSize(640,480);
-        surfaceView.getHolder().setFormat(PixelFormat.RGB_888);
-        //surfaceView.getHolder().setFormat(ImageFormat.YUV_420_888);
         surfaceView.getHolder().addCallback(mUVCPlayer);
     }
 

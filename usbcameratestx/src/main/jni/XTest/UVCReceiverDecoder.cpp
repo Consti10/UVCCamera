@@ -32,6 +32,9 @@ private:
     uvc_device_t *dev;
     uvc_device_handle_t *devh;
     boolean isStreaming;
+    static constexpr unsigned int VIDEO_STREAM_WIDTH=640;
+    static constexpr unsigned int VIDEO_STREAM_HEIGHT=480;
+    static constexpr unsigned int VIDEO_STREAM_FPS=30;
 public:
     // nullptr: clean up and remove
     // valid surface: acquire the ANativeWindow
@@ -42,6 +45,7 @@ public:
             aNativeWindow=nullptr;
         }else{
             aNativeWindow=ANativeWindow_fromSurface(env,surface);
+            ANativeWindow_setBuffersGeometry(aNativeWindow,VIDEO_STREAM_WIDTH,VIDEO_STREAM_HEIGHT,AHARDWAREBUFFER_FORMAT_R8G8B8_UNORM);
         }
     }
     // Investigate: Even tough the documentation warns about dropping frames if processing takes too long
@@ -104,7 +108,7 @@ public:
                 res = uvc_get_stream_ctrl_format_size(
                         devh, &ctrl,
                         UVC_FRAME_FORMAT_MJPEG,
-                        640, 480, 30
+                        VIDEO_STREAM_WIDTH, VIDEO_STREAM_HEIGHT, VIDEO_STREAM_FPS
                 );
                 /* Print out the result */
                 uvc_print_stream_ctrl(&ctrl, stderr);
