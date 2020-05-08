@@ -8,6 +8,8 @@
 #include <libuvc.h>
 #include <stdio.h>
 #include <cstring>
+#include <thread>
+#include <atomic>
 
 #include "../NDKHelper/MDebug.hpp"
 #include "../NDKHelper/NDKArrayHelper.hpp"
@@ -17,7 +19,11 @@
 
 class UVCReceiverDecoder{
 private:
+    // Window that holds the buffer(s) frames will be decoded into
     ANativeWindow* aNativeWindow=nullptr;
+    // Setting / updating the window happens from 2 different threads.
+    // Not 100% sure if needed, but can't hurt
+    std::mutex mMutexNativeWindow;
     // Need a static function that calls class instance for the c-style uvc lib
     static void callbackProcessFrame(uvc_frame_t* frame, void* self){
         ((UVCReceiverDecoder *) self)->processFrame(frame);
@@ -27,8 +33,11 @@ private:
     uvc_device_handle_t *devh;
     boolean isStreaming;
 public:
+    // nullptr: clean up and remove
+    // valid surface: acquire the ANativeWindow
     void setSurface(JNIEnv* env,jobject surface){
-        if(surface== nullptr){
+        std::lock_guard<std::mutex> lock(mMutexNativeWindow);
+        if(surface==nullptr){
             ANativeWindow_release(aNativeWindow);
             aNativeWindow=nullptr;
         }else{
@@ -39,6 +48,7 @@ public:
     // I cannot experience dropped frames - ?
     // Using less threads (no extra thread for decoding) reduces throughput but also latency
     void processFrame(uvc_frame_t* frame_mjpeg){
+        std::lock_guard<std::mutex> lock(mMutexNativeWindow);
         CLOGD("Got uvc_frame_t %d",frame_mjpeg->sequence);
         if(aNativeWindow==nullptr){
             CLOGD("No surface");
@@ -58,7 +68,8 @@ public:
         }
     }
     // Connect via android java first (workaround ?!)
-    void startReceiving(jint vid, jint pid, jint fd,
+    // 0 on success, -1 otherwise
+    int startReceiving(jint vid, jint pid, jint fd,
                         jint busnum,jint devAddr,
                         jstring usbfs_str){
         uvc_stream_ctrl_t ctrl;
@@ -107,7 +118,7 @@ public:
                         CLOGD("Streaming...");
                         //uvc_set_ae_mode(devh, 1); /* e.g., turn on auto exposure */
                         isStreaming=true;
-                        return;
+                        return 0;
                         sleep(10); /* stream for 10 seconds */
                         /* End the stream. Blocks until last callback is serviced */
                         uvc_stop_streaming(devh);
@@ -123,8 +134,8 @@ public:
         /* Close the UVC context. This closes and cleans up any existing device handles,
          * and it closes the libusb context if one was not provided. */
         uvc_exit(ctx);
+        return -1;
     }
-
     void stopReceiving(){
         if(isStreaming){
             uvc_stop_streaming(devh);
@@ -158,13 +169,13 @@ JNI_METHOD(void, nativeDelete)
     delete native(p);
 }
 
-JNI_METHOD(void, nativeStartReceiving)
+JNI_METHOD(jint, nativeStartReceiving)
 (JNIEnv *env, jclass jclass1,jlong nativeInstance,
  jint vid, jint pid, jint fd,
  jint busnum,jint devAddr,
  jstring usbfs_str
 ) {
-    native(nativeInstance)->startReceiving(vid,pid,fd,busnum,devAddr,usbfs_str);
+    return native(nativeInstance)->startReceiving(vid,pid,fd,busnum,devAddr,usbfs_str);
 }
 JNI_METHOD(void, nativeStopReceiving)
 (JNIEnv *env, jclass jclass1, jlong p) {

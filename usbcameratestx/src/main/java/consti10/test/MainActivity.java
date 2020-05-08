@@ -22,50 +22,29 @@ import java.util.Iterator;
 public class MainActivity extends AppCompatActivity {
     private static final String TAG="MainActivityX";
     private SurfaceView surfaceView;
-    private final UVCPlayer mUVCPlayer=new UVCPlayer();
+    private UVCPlayer mUVCPlayer;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        mUVCPlayer=new UVCPlayer(this);
         surfaceView=findViewById(R.id.xSurfaceView);
         surfaceView.getHolder().setFixedSize(640,480);
-        surfaceView.getHolder().setFormat(PixelFormat.RGBA_8888);
+        surfaceView.getHolder().setFormat(PixelFormat.RGB_888);
         //surfaceView.getHolder().setFormat(ImageFormat.YUV_420_888);
         surfaceView.getHolder().addCallback(mUVCPlayer);
     }
 
-    private void start(){
-        final UsbManager usbManager = (UsbManager) getSystemService(Context.USB_SERVICE);
-
-        final PendingIntent permissionIntent = PendingIntent.getBroadcast(this, 0, new Intent(UVCPlayer.ACTION_USB_PERMISSION), 0);
-
-        final HashMap<String, UsbDevice> deviceList =usbManager.getDeviceList();
-
-        Log.d(TAG,"There are "+deviceList.size()+" devices connected");
-        UVCHelper.filterFOrUVC(deviceList);
-
-        final Iterator<UsbDevice> deviceIterator = deviceList.values().iterator();
-        while(deviceIterator.hasNext()){
-            final UsbDevice device = deviceIterator.next();
-            Log.d(TAG,"USB Device"+device.getDeviceName());
-            usbManager.requestPermission(device, permissionIntent);
-        }
-    }
 
     @Override
     protected void onResume(){
         super.onResume();
-        //register the broadcast receiver
-        registerReceiver(mUVCPlayer,UVCPlayer.getIntentFilter());
-        start();
     }
 
     @Override
     protected void onPause(){
         super.onPause();
-        unregisterReceiver(mUVCPlayer);
-        mUVCPlayer.cancel();
     }
 
 }

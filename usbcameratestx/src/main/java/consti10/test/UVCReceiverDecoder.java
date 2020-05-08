@@ -28,13 +28,11 @@ public class UVCReceiverDecoder {
         nativeInstance=nativeConstruct();
     }
 
-    public void startReceiving(final Context context,final UsbDevice device){
+    public void startReceiving(final Context context,final UsbDevice device,final UsbDeviceConnection connection){
         if(alreadyStreaming){
             Log.d(TAG,"startReceiving() already called");
             return;
         }
-        final UsbManager usbManager = (UsbManager) context.getSystemService(Context.USB_SERVICE);
-        final UsbDeviceConnection connection=usbManager.openDevice(device);
         final String name = device.getDeviceName();
         final String[] v = !TextUtils.isEmpty(name) ? name.split("/") : null;
         int busnum = 0;
@@ -44,8 +42,10 @@ public class UVCReceiverDecoder {
             devnum = Integer.parseInt(v[v.length-1]);
         }
         //
-        nativeStartReceiving(nativeInstance,device.getVendorId(),device.getProductId(),connection.getFileDescriptor(),busnum,devnum,device.getDeviceName());
-        alreadyStreaming=true;
+        int success=nativeStartReceiving(nativeInstance,device.getVendorId(),device.getProductId(),connection.getFileDescriptor(),busnum,devnum,device.getDeviceName());
+        if(success==0){
+            alreadyStreaming=true;
+        }
     }
 
     public void stopReceiving(){
@@ -64,7 +64,8 @@ public class UVCReceiverDecoder {
 
     private static native long nativeConstruct();
     private static native void nativeDelete(long nativeInstance);
-    private static native void nativeStartReceiving(long nativeInstance,int venderId, int productId, int fileDescriptor, int busNum, int devAddr, String usbfs);
+    // returns 0 on success
+    private static native int nativeStartReceiving(long nativeInstance,int venderId, int productId, int fileDescriptor, int busNum, int devAddr, String usbfs);
     private static native void nativeStopReceiving(long nativeInstance);
     private static native void nativeSetSurface(long nativeInstance,Surface surface);
 
