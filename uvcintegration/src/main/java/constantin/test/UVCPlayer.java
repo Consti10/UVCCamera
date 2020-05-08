@@ -24,7 +24,6 @@ import java.util.Iterator;
 // Uses BroadcastReceiver to get notified when USB devices are connected / permission is granted
 // Uses android lifecycle to pause / resume
 // Uses SurfaceHolder.Callback to get / remove decoding surface
-
 public class UVCPlayer extends BroadcastReceiver implements SurfaceHolder.Callback, LifecycleObserver {
     private static final String TAG="UVCPlayer";
     private final UVCReceiverDecoder mUVCReceiverDecoder=new UVCReceiverDecoder();
