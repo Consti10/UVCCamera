@@ -1699,6 +1699,10 @@ void _uvc_populate_frame(uvc_stream_handle_t *strmh) {
 		frame->step = 0;
 		break;
 	}
+	//Consti add
+	frame->sequence = strmh->hold_seq;
+	//frame->capture_time = strmh->capture_time_finished
+	//
 
 	/* copy the image data from the hold buffer to the frame (unnecessary extra buf?) */
 	if (UNLIKELY(frame->data_bytes < strmh->hold_bytes)) {

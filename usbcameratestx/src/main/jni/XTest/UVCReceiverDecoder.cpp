@@ -35,6 +35,7 @@ private:
     static constexpr unsigned int VIDEO_STREAM_WIDTH=640;
     static constexpr unsigned int VIDEO_STREAM_HEIGHT=480;
     static constexpr unsigned int VIDEO_STREAM_FPS=30;
+    int lastUvcFrameSequenceNr=0;
 public:
     // nullptr: clean up and remove
     // valid surface: acquire the ANativeWindow
@@ -53,7 +54,12 @@ public:
     // Using less threads (no extra thread for decoding) reduces throughput but also latency
     void processFrame(uvc_frame_t* frame_mjpeg){
         std::lock_guard<std::mutex> lock(mMutexNativeWindow);
-        CLOGD("Got uvc_frame_t %d  ms: %f",frame_mjpeg->sequence,(frame_mjpeg->capture_time.tv_usec/1000)/1000.0f);
+        //CLOGD("Got uvc_frame_t %d  ms: %f",frame_mjpeg->sequence,(frame_mjpeg->capture_time.tv_usec/1000)/1000.0f);
+        int deltaFrameSequence=frame_mjpeg->sequence-lastUvcFrameSequenceNr;
+        lastUvcFrameSequenceNr=frame_mjpeg->sequence;
+        if(deltaFrameSequence!=1){
+            CLOGD("Probably dropped frame %d",deltaFrameSequence);
+        }
         if(aNativeWindow==nullptr){
             CLOGD("No surface");
             return;

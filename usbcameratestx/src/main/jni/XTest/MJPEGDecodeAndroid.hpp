@@ -23,7 +23,7 @@ namespace MJPEGDecodeAndroid{
     // No unnecessary memcpy's & correctly handle stride of ANativeWindow_Buffer
     // input uvc_frame_t frame has to be of type MJPEG
     static void DecodeMJPEGtoANativeWindowBuffer(uvc_frame_t* frame_mjpeg,const ANativeWindow_Buffer& nativeWindowBuffer){
-        debugANativeWindowBuffer(nativeWindowBuffer);
+        //debugANativeWindowBuffer(nativeWindowBuffer);
         if(nativeWindowBuffer.width!=frame_mjpeg->width || nativeWindowBuffer.height!=frame_mjpeg->height){
             CLOGD("Error window & frame : size / width does not match");
             return;
