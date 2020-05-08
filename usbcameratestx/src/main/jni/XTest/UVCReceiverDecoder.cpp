@@ -53,7 +53,7 @@ public:
     // Using less threads (no extra thread for decoding) reduces throughput but also latency
     void processFrame(uvc_frame_t* frame_mjpeg){
         std::lock_guard<std::mutex> lock(mMutexNativeWindow);
-        CLOGD("Got uvc_frame_t %d",frame_mjpeg->sequence);
+        CLOGD("Got uvc_frame_t %d  ms: %f",frame_mjpeg->sequence,(frame_mjpeg->capture_time.tv_usec/1000)/1000.0f);
         if(aNativeWindow==nullptr){
             CLOGD("No surface");
             return;
